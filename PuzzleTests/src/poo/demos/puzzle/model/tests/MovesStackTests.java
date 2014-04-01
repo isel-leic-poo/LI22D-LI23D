@@ -9,8 +9,10 @@ import poo.demos.puzzle.model.Move.Delta;
 import poo.demos.puzzle.model.MovesStack;
 import poo.demos.puzzle.model.Piece;
 
-public class MovesStackTest {
+public class MovesStackTests {
 
+	// TODO: Elaborate when MovesStack is redone 
+	
 	@Test
 	public void testCorrectInitiation() 
 	{

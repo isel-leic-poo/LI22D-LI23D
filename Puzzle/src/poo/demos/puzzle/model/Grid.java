@@ -7,6 +7,29 @@ package poo.demos.puzzle.model;
 public class Grid {
 	
 	/**
+	 * Class whose instances represent immutable pieces.
+	 */
+	private static class ImmutablePiece extends Piece
+	{
+		public ImmutablePiece(Piece original) 
+		{
+			super(original);
+		}
+		
+		@Override
+		public void setPosition(int x, int y) 
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void move(int deltaX, int deltaY) 
+		{
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	/**
 	 * Holds the bi-dimensional array that holds the puzzle's pieces. 
 	 */
 	private final Piece[][] grid;
@@ -24,9 +47,6 @@ public class Grid {
 	 */
 	private Grid(int size)
 	{
-		if(size <= 0)
-			throw new IllegalArgumentException();
-
 		this.size = size;
 		grid = new Piece[size][size];
 	}
@@ -37,25 +57,29 @@ public class Grid {
 	 * Implementation note: The current algorithm always leaves an empty space
 	 * at the bottom rightmost position of the grid.
 	 *  
-	 * @param side the size of the puzzle's side
+	 * @param size the size of the puzzle's side. The size of the puzzle must be, at least,
+	 * of two elements per side. 
 	 * @return the shuffled instance
-	 * @throws IllegalArgumentException if size is less or equal than {@code 0} 
+	 * @throws IllegalArgumentException if size is less or equal than {@code 1} 
 	 */
-	public static Grid createRandomPuzzle(int side)
+	public static Grid createRandomPuzzle(int size)
 	{
+		if(size <= 1)
+			throw new IllegalArgumentException();
+		
 		// Initialize placeholder
-		Piece[] pieces = new Piece[side * side - 1];
+		Piece[] pieces = new Piece[size * size - 1];
 		
 		// Initialize pieces
 		for(int idx = 0; idx < pieces.length; ++idx)
 		{
-			int initialX = idx % side;
-			int initialY = idx / side;
+			int initialX = idx % size;
+			int initialY = idx / size;
 			pieces[idx] = new Piece(initialX, initialY);
 		}
 
 		// Initialize grid 
-		Grid instance = new Grid(side);
+		Grid instance = new Grid(size);
 		
 		for(int idx = 0; idx < pieces.length; ++idx)
 		{
@@ -65,8 +89,8 @@ public class Grid {
 			pieces[selectedIdx] = pieces[pieces.length - idx - 1];
 			
 			// Place it
-			int currentX = idx % side;
-			int currentY = idx / side;
+			int currentX = idx % size;
+			int currentY = idx / size;
 			selectedPiece.setPosition(currentX, currentY);
 			instance.grid[currentY][currentX] = selectedPiece;
 		}
@@ -76,18 +100,47 @@ public class Grid {
 	
 	/**
 	 * Gets the piece at the given position. If the position is free,
-	 * the method returns {@code null}
+	 * the method returns {@code null}.
+	 * The returned instance is immutable, that is, the operations that 
+	 * would modify the instance's state (i.e. move, setPosition) throw
+	 * an {@link UnsupportedOperationException}.
 	 * 
 	 * @param x the horizontal coordinate value (0 < x < puzzleSize)
 	 * @param y the horizontal coordinate value (0 < y < puzzleSize)
 	 * @return the piece at the given position, or {@code null} if that position 
 	 * is empty
+	 * @throws IllegalArgumentException if the parameters are not within the 
+	 * grid's bounds (0 <= value < gridSide) 
 	 */
 	public Piece getPieceAtPosition(int x, int y)
 	{
 		if(x < 0 || x >= size || y < 0 || y >= size)
 			throw new IllegalArgumentException();
 		
-		return grid[y][x];
+		Piece originalPiece = grid[y][x]; 
+		return originalPiece == null ? null : new ImmutablePiece(originalPiece);
+	}
+
+	/**
+	 * Gets the grid's size.
+	 * 
+	 * @return the grid's size
+	 */
+	public int getSize()
+	{
+		return grid.length;
+	}
+	
+	// TODO: Add methods to move pieces
+	
+	public void doMove(Move move)
+	{
+		Piece targetPiece = grid[move.target.getY()][move.target.getX()];
+		
+		// TODO: validate move
+		
+		targetPiece.move(move.delta.X, move.delta.Y);
+		grid[targetPiece.getY()][targetPiece.getX()] = targetPiece;
+		
 	}
 }

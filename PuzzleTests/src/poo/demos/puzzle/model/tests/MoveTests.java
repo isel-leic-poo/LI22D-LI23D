@@ -1,40 +1,140 @@
 package poo.demos.puzzle.model.tests;
 
 import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
 import org.junit.Test;
 
 import poo.demos.puzzle.model.Move;
+import poo.demos.puzzle.model.Move.Delta;
 import poo.demos.puzzle.model.Piece;
 
+/**
+ * Note to students:
+ * Just for fun, my test suits are using Hamcrest's matchers.
+ * Notice the increased expressiveness.. ;)
+ * 
+ * For your own tests I recommend you use (for now) JUnit's assertions (e.g. assertSame,
+ * assertEqual, assertTrue, and so on).
+ * 
+ * The next example illustrates the use of JUnit's assertions to express the 
+ * deltaGetReverse_correctReverseComputation_returnsReverse unit test.
+ * <pre> 
+ * {@code
+ * 		assertSame(Delta.DOWN, Delta.UP.getReverse());
+ * 		assertSame(Delta.UP, Delta.DOWN.getReverse());
+ * 		assertSame(Delta.LEFT, Delta.RIGHT.getReverse());
+ * 		assertSame(Delta.RIGHT, Delta.LEFT.getReverse());
+ * }
+ * </pre>
+ */
 public class MoveTests {
-
+	
 	@Test
-	public void testCorrectInitiation() 
+	public void deltaGetReverse_correctReverseComputation_returnsReverse()
 	{
-		new Move(Move.Delta.UP, new Piece(0, 0));
+		assertThat(Delta.UP.getReverse(), is(sameInstance(Delta.DOWN)));
+		assertThat(Delta.DOWN.getReverse(), is(sameInstance(Delta.UP)));
+		assertThat(Delta.RIGHT.getReverse(), is(sameInstance(Delta.LEFT)));
+		assertThat(Delta.LEFT.getReverse(), is(sameInstance(Delta.RIGHT)));
+	}
+	
+	@Test
+	public void instantiation_validConstructorArguments_noExceptionThrownAndFieldsAreCorrect() 
+	{
+		Piece piece = new Piece(0, 0);
+		Move move = new Move(Move.Delta.UP, piece);
+		assertThat(move.delta, is(sameInstance(Move.Delta.UP)));
+		assertThat(move.target, is(sameInstance(piece)));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testIncorrectPieceInitiation() 
+	public void instantiation_nullPieceInConstructorArgument_exceptionThrown() 
 	{
 		new Move(Move.Delta.UP, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testIncorrectDeltaInitiation() 
+	public void instantiation_nullDeltaInConstructorArgument_exceptionThrown() 
 	{
 		new Move(null, new Piece(0, 0));
 	}
 
 	@Test
-	public void testReverseMoveComputation() 
+	public void equals_equivalentMoves_returnsTrue()
+	{
+		Piece targetPiece = new Piece(0, 0);
+		Move one = new Move(Move.Delta.UP, targetPiece);
+		Move other = new Move(Move.Delta.UP, targetPiece);
+		assertThat(one, is(equalTo(other)));
+		assertThat(other, is(equalTo(one)));
+	}
+	
+	@Test
+	public void hashCode_equivalentMoves_returnsSameValue()
+	{
+		Piece targetPiece = new Piece(0, 0);
+		Move one = new Move(Move.Delta.UP, targetPiece);
+		Move other = new Move(Move.Delta.UP, targetPiece);
+		assertThat(one.hashCode(), is(equalTo(other.hashCode())));
+	}
+	
+	@Test
+	public void equals_nullArgument_returnsFalse()
+	{
+		Move move = new Move(Move.Delta.UP, new Piece(0, 0));
+		assertThat(move, is(not(equalTo(null))));
+	}
+	
+	@Test
+	public void equals_sameMove_returnsTrue()
+	{
+		Move move = new Move(Move.Delta.UP, new Piece(0, 0));
+		assertThat(move, is(equalTo(move)));
+	}
+	
+	@Test
+	public void equals_differentMoves_returnsFalse()
+	{
+		Move one = new Move(Move.Delta.DOWN, new Piece(0, 0));
+		Move other = new Move(Move.Delta.UP, new Piece(1, 0));
+		assertThat(one, is(not(equalTo(other))));
+		assertThat(other, is(not(equalTo(one))));
+	}
+
+	@Test
+	public void getReverseMove_reverseUp_returnsDown() 
 	{
 		Piece targetPiece = new Piece(0, 0);
 		Move move = new Move(Move.Delta.UP, targetPiece);
-		Move reverseMove = move.getReverseMove();
-		assertSame(targetPiece, reverseMove.target);
-		// TODO: Must ensure equivalence implementation 
-		assertEquals(Move.Delta.DOWN, reverseMove.delta);
+		Move expectedReverseMove = new Move(Move.Delta.DOWN, targetPiece);
+		assertThat(move.getReverseMove(), is(equalTo(expectedReverseMove)));
+	}
+
+	@Test
+	public void getReverseMove_reverseDown_returnsUp() 
+	{
+		Piece targetPiece = new Piece(0, 0);
+		Move move = new Move(Move.Delta.DOWN, targetPiece);
+		Move expectedReverseMove = new Move(Move.Delta.UP, targetPiece);
+		assertThat(move.getReverseMove(), is(equalTo(expectedReverseMove)));
+	}
+
+	@Test
+	public void getReverseMove_reverseLeft_returnsRight() 
+	{
+		Piece targetPiece = new Piece(0, 0);
+		Move move = new Move(Move.Delta.LEFT, targetPiece);
+		Move expectedReverseMove = new Move(Move.Delta.RIGHT, targetPiece);
+		assertThat(move.getReverseMove(), is(equalTo(expectedReverseMove)));
+	}
+
+	@Test
+	public void getReverseMove_reverseRight_returnsLeft() 
+	{
+		Piece targetPiece = new Piece(0, 0);
+		Move move = new Move(Move.Delta.RIGHT, targetPiece);
+		Move expectedReverseMove = new Move(Move.Delta.LEFT, targetPiece);
+		assertThat(move.getReverseMove(), is(equalTo(expectedReverseMove)));
 	}
 }

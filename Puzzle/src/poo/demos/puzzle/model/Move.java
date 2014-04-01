@@ -9,8 +9,14 @@ public class Move {
 	 * Enumeration of valid displacements of puzzle pieces.
 	 * Instances of this class are immutable.
 	 */
-	public static class Delta {
+	public static enum Delta {
 
+		/**
+		 * The existing enumeration instances. Notice that the order of declaration
+		 * is relevant: it is used to compute the reverse delta.
+		 */
+		DOWN(0,1), UP(0,-1), RIGHT(1,0), LEFT(-1,0); 
+		
 		/**
 		 * The horizontal delta
 		 */
@@ -23,6 +29,7 @@ public class Move {
 		
 		/**
 		 * Initiates an instance with the given arguments.
+		 * 
 		 * @param dX The horizontal delta
 		 * @param dY The vertical delta
 		 */
@@ -33,20 +40,21 @@ public class Move {
 		}
 		
 		/**
-		 * Static fields that hold the valid displacements for 
-		 * puzzle pieces.
+		 * Gets this instance's reverse delta, that is, UP.getReverse() produces DOWN,
+		 * LEFT.getReverse() produces RIGHT, and vice-versa. 
+		 * 
+		 * @return The reverse delta of the this instance.
 		 */
-		public static final Delta UP, DOWN, LEFT, RIGHT;
-		
-		static 
+		public Delta getReverse()
 		{
-		 	UP = new Delta(0, -1);
-		 	DOWN = new Delta(0, 1);
-		 	LEFT = new Delta(-1, 0);
-		 	RIGHT = new Delta(1, 0);
+			Delta[] values = values();
+			// A bit of arithmetic incantation which is compromised with the 
+			// order of the declaration of the enum's instances.
+			int reverseIndex = (Math.abs(X) * 2) + (X + Y + 1) / 2;
+			return values[reverseIndex];
 		}
 	}
-
+	
 	/**
 	 * The move's coordinates variation.
 	 */
@@ -80,7 +88,40 @@ public class Move {
 	 */
 	public Move getReverseMove()
 	{
-		Delta reverseDelta = new Delta(this.delta.X * -1, this.delta.Y * -1);
-		return new Move(reverseDelta, this.target);
+		return new Move(delta.getReverse(), this.target);
+	}
+
+	@Override
+	public int hashCode() 
+	{
+		return this.toString().hashCode();
+	}
+
+	/**
+	 * Checks if the instance is equivalent to the given one.
+	 * Two move instances are equivalent if their delta is equivalent and 
+	 * they refer to the same piece instance.  
+	 * 
+	 * @param other the other instance to use in the equivalence check
+	 * @return {@code true} if the current instance is equivalent to the given one,
+	 * {@code false} otherwise 
+	 */
+	@Override
+	public boolean equals(Object other) 
+	{
+		if(!(other instanceof Move))
+			return false;
+		
+		Move otherPiece = (Move) other;
+		if(this == other)
+			return true;
+		
+		return this.delta.equals(otherPiece.delta) && this.target == otherPiece.target;
+	}
+
+	@Override
+	public String toString() 
+	{
+		return "Move " + target.toString() + " " + this.delta.toString();
 	}
 }
