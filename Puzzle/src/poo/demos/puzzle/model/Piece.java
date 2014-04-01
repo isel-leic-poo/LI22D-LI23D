@@ -1,23 +1,18 @@
 package poo.demos.puzzle.model;
 
 /**
- * Class whose instances represent puzzle pieces. 
+ * Base abstract class for representing puzzle pieces.
  * 
  * Puzzle pieces have an initial position (which is considered the correct 
  * piece position) and a current position. Positions are represented as 
  * rectangular coordinates (i.e. x and y) that must be positive values (i.e. >= 0).
  */
-public class Piece extends Object {
+public abstract class Piece {
 
 	/**
-	 * The instance's correct coordinates.
+	 * The instance's initial coordinates.
 	 */
-	private final int correctX, correctY;
-	
-	/**
-	 * The instance's current coordinates.
-	 */
-	private int currentX, currentY;
+	private final int initialX, initialY;
 	
 	/**
 	 * Initiates an instance with the given coordinates.
@@ -26,50 +21,13 @@ public class Piece extends Object {
 	 * @param y The vertical coordinate value
 	 * @throws IllegalArgumentException if either coordinate has a negative value
 	 */
-	public Piece(int x, int y)
+	protected Piece(int x, int y)
 	{
 		if(x < 0 || y < 0)
 			throw new IllegalArgumentException();
 
-		correctX = currentX = x;
-		correctY = currentY = y;
-	}
-	
-	/**
-	 * Initiates an instance by copying the contents of the given piece.
-	 * 
-	 * @param p The piece to be copied
-	 * @throw IllegalArgumentException if the argument is {@code null}
-	 */
-	public Piece(Piece p)
-	{
-		if(p == null)
-			throw new IllegalArgumentException();
-		
-		correctX = p.correctX;
-		correctY = p.correctY;
-		currentX = p.currentX;
-		currentY = p.currentY;
-	}
-
-	/**
-	 * Gets the piece's current horizontal coordinate.
-	 * 
-	 * @return The horizontal coordinate value
-	 */
-	public int getX()
-	{
-		return currentX;
-	}
-	
-	/**
-	 * Gets the piece's current vertical coordinate.
-	 * 
-	 * @return The vertical coordinate value
-	 */
-	public int getY()
-	{
-		return currentY;
+		initialX = x;
+		initialY = y;
 	}
 	
 	/**
@@ -77,9 +35,9 @@ public class Piece extends Object {
 	 * 
 	 * @return The horizontal coordinate value
 	 */
-	public int getInitialX()
+	public final int getInitialX()
 	{
-		return correctX;
+		return initialX;
 	}
 	
 	/**
@@ -87,11 +45,11 @@ public class Piece extends Object {
 	 * 
 	 * @return The vertical coordinate value
 	 */
-	public int getInitialY()
+	public final int getInitialY()
 	{
-		return correctY;
+		return initialY;
 	}
-
+	
 	/**
 	 * Checks if the piece is at its correct (initial) position.
 	 * 
@@ -100,52 +58,31 @@ public class Piece extends Object {
 	 */
 	public boolean isAtCorrectPosition()
 	{
-		return currentX == correctX && currentY == correctY; 
+		return getX() == getInitialX() && getY() == getInitialY(); 
 	}
+
+	/**
+	 * Gets the piece's current horizontal coordinate.
+	 * 
+	 * @return The horizontal coordinate value
+	 */
+	public abstract int getX();
 	
 	/**
-	 * Sets the instance's current position to the given coordinate values.
+	 * Gets the piece's current vertical coordinate.
 	 * 
-	 * @param x the horizontal coordinate value
-	 * @param y the vertical coordinate value
-	 * @throws IllegalArgumentException if either coordinate has a negative value
+	 * @return The vertical coordinate value
 	 */
-	public void setPosition(int x, int y)
-	{
-		if(x < 0 || y < 0)
-			throw new IllegalArgumentException();
-		
-		currentX = x;
-		currentY = y;
-	}
-	
-	/**
-	 * Moves the instance by the given distance.
-	 * 
-	 * @param deltaX the distance's horizontal coordinate. Positive values
-	 * move the piece to the right and negative values move it to the left 
-	 * @param deltaY the distance's vertical coordinate. Positive values
-	 * move the piece down and negative values move it up 
-	 * @throws IllegalStateException if the resulting position is an illegal one,
-	 * that is, it has a negative value in one of its coordinates
-	 */
-	public void move(int deltaX, int deltaY)
-	{
-		if(currentX + deltaX < 0 || currentY + deltaY < 0)
-			throw new IllegalStateException();
-		
-		currentX += deltaX;
-		currentY += deltaY;
-	}
+	public abstract int getY();
+
+	// Canonical methods
 	
 	@Override
 	public String toString() 
 	{
-		return "{ initial=(" + correctX + "," + correctY 
-				+ "); current=(" + currentX + "," + currentY + ") }";
-	}
-	
-	// Canonical methods
+		return "{ initial=(" + getInitialX() + "," + getInitialY() 
+				+ "); current=(" + getX() + "," + getY() + ") }";
+	}	
 	
 	@Override
 	public int hashCode() 
@@ -172,9 +109,9 @@ public class Piece extends Object {
 			return true;
 		
 		Piece otherPiece = (Piece) other;
-		return 	this.correctX == otherPiece.correctX 
-				&& this.correctY == otherPiece.correctY
-				&& this.currentX == otherPiece.currentX 
-				&& this.currentY == otherPiece.currentY;
+		return 	this.getInitialX() == otherPiece.getInitialX() 
+				&& this.getInitialY() == otherPiece.getInitialY() 
+				&& this.getX() == otherPiece.getX() 
+				&& this.getY() == otherPiece.getY();
 	}
 }

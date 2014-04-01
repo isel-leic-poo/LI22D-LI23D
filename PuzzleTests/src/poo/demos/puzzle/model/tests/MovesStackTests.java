@@ -8,6 +8,7 @@ import poo.demos.puzzle.model.Move;
 import poo.demos.puzzle.model.Move.Delta;
 import poo.demos.puzzle.model.MovesStack;
 import poo.demos.puzzle.model.Piece;
+import poo.demos.puzzle.model.tests.mocks.MockPiece;
 
 public class MovesStackTests {
 
@@ -25,7 +26,7 @@ public class MovesStackTests {
 	{
 		MovesStack moves = new MovesStack();
 		assertTrue(moves.isEmpty());
-		Move someMove = new Move(Delta.DOWN, new Piece(0, 0));
+		Move someMove = new Move(Delta.DOWN, new MockPiece(0, 0));
 		moves.push(someMove);
 		assertFalse(moves.isEmpty());
 		Move removedMove = moves.pop();
@@ -37,7 +38,7 @@ public class MovesStackTests {
 	public void testFILODiscipline()
 	{
 		MovesStack moves = new MovesStack();
-		Piece piece = new Piece(0, 0);
+		Piece piece = new MockPiece(0, 0);
 		// Adding moves to the stack
 		Move firstMove = new Move(Delta.DOWN, piece);
 		moves.push(firstMove);

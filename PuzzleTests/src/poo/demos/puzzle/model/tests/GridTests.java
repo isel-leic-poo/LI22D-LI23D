@@ -92,28 +92,4 @@ public class GridTests {
 		assertThat(piece.getX(), is(equalTo(currentX)));
 		assertThat(piece.getY(), is(equalTo(currentY)));
 	}
-	
-	@Test(expected = UnsupportedOperationException.class)
-	public void getPieceAtPosition_withValidCoordinatesAndThenTryToModifyWithSetPosition_exceptionThrown()
-	{
-		int initialX = 0, initialY = 0;
-		Piece immutablePiece = puzzle.getPieceAtPosition(initialX, initialY);
-		// If we got the puzzle's hole, let's try another piece
-		if(immutablePiece == null)
-			immutablePiece = puzzle.getPieceAtPosition(initialX, initialY+=1);
-		
-		immutablePiece.setPosition(1, 1);
-	}
-	
-	@Test(expected = UnsupportedOperationException.class)
-	public void getPieceAtPosition_withValidCoordinatesAndThenTryToModifyWithMove_exceptionThrown()
-	{
-		int initialX = 0, initialY = 0;
-		Piece immutablePiece = puzzle.getPieceAtPosition(initialX, initialY);
-		// If we got the puzzle's hole, let's try another piece
-		if(immutablePiece == null)
-			immutablePiece = puzzle.getPieceAtPosition(initialX, initialY+=1);
-		
-		immutablePiece.move(1, 0);
-	}
 }

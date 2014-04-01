@@ -7,32 +7,9 @@ package poo.demos.puzzle.model;
 public class Grid {
 	
 	/**
-	 * Class whose instances represent immutable pieces.
+	 * Holds the two-dimensional array that holds the puzzle's pieces. 
 	 */
-	private static class ImmutablePiece extends Piece
-	{
-		public ImmutablePiece(Piece original) 
-		{
-			super(original);
-		}
-		
-		@Override
-		public void setPosition(int x, int y) 
-		{
-			throw new UnsupportedOperationException();
-		}
-		
-		@Override
-		public void move(int deltaX, int deltaY) 
-		{
-			throw new UnsupportedOperationException();
-		}
-	}
-	
-	/**
-	 * Holds the bi-dimensional array that holds the puzzle's pieces. 
-	 */
-	private final Piece[][] grid;
+	private final MutablePiece[][] grid;
 	
 	/**
 	 * The puzzle's size
@@ -48,7 +25,7 @@ public class Grid {
 	private Grid(int size)
 	{
 		this.size = size;
-		grid = new Piece[size][size];
+		grid = new MutablePiece[size][size];
 	}
 	
 	/**
@@ -68,14 +45,14 @@ public class Grid {
 			throw new IllegalArgumentException();
 		
 		// Initialize placeholder
-		Piece[] pieces = new Piece[size * size - 1];
+		MutablePiece[] pieces = new MutablePiece[size * size - 1];
 		
 		// Initialize pieces
 		for(int idx = 0; idx < pieces.length; ++idx)
 		{
 			int initialX = idx % size;
 			int initialY = idx / size;
-			pieces[idx] = new Piece(initialX, initialY);
+			pieces[idx] = new MutablePiece(initialX, initialY);
 		}
 
 		// Initialize grid 
@@ -85,7 +62,7 @@ public class Grid {
 		{
 			// Select a piece
 			int selectedIdx = (int) (Math.random() * (pieces.length - idx));
-			Piece selectedPiece = pieces[selectedIdx];
+			MutablePiece selectedPiece = pieces[selectedIdx];
 			pieces[selectedIdx] = pieces[pieces.length - idx - 1];
 			
 			// Place it
@@ -117,8 +94,7 @@ public class Grid {
 		if(x < 0 || x >= size || y < 0 || y >= size)
 			throw new IllegalArgumentException();
 		
-		Piece originalPiece = grid[y][x]; 
-		return originalPiece == null ? null : new ImmutablePiece(originalPiece);
+		return grid[y][x]; 
 	}
 
 	/**
@@ -135,7 +111,7 @@ public class Grid {
 	
 	public void doMove(Move move)
 	{
-		Piece targetPiece = grid[move.target.getY()][move.target.getX()];
+		MutablePiece targetPiece = grid[move.target.getY()][move.target.getX()];
 		
 		// TODO: validate move
 		
