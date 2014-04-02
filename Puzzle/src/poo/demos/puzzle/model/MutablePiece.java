@@ -27,6 +27,7 @@ public class MutablePiece extends Piece {
 	 * 
 	 * @return The horizontal coordinate value
 	 */
+	@Override
 	public int getX()
 	{
 		return currentX;
@@ -37,6 +38,7 @@ public class MutablePiece extends Piece {
 	 * 
 	 * @return The vertical coordinate value
 	 */
+	@Override
 	public int getY()
 	{
 		return currentY;

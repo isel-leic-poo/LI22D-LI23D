@@ -1,36 +1,15 @@
 package poo.demos.puzzle.model;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+
 /**
  * Class whose instances represent the moves made so far in the game.
  * The stack is implemented as a linked list.
  */
 public class MovesStack {
 
-	/**
-	 * Class that represents linked list nodes. 
-	 */
-	private static class Node
-	{
-		/**
-		 * The next node in the list, or null if none exists.
-		 */
-		public Node next;
-		
-		/**
-		 * The move stored in the node.
-		 */
-		public Move elem;
-	}
-	
-	/**
-	 * Holds the top of the stack.
-	 */
-	private Node head = null;
-	
-	/**
-	 * Holds the current size of the stack.
-	 */
-	private int size = 0;
+	private final LinkedList<Move> container = new LinkedList<Move>();
 	
 	/**
 	 * Pushes the given element to the top of the stack.
@@ -42,14 +21,8 @@ public class MovesStack {
 	{
 		if(move == null)
 			throw new IllegalArgumentException();
-		
-		// Create node instance
-		Node newNode = new Node();
-		newNode.elem = move;
-		newNode.next = head;
-		// Add it to the top of the stack
-		head = newNode;
-		size += 1;
+
+		container.addFirst(move);
 	}
 	
 	/**
@@ -62,11 +35,8 @@ public class MovesStack {
 	{
 		if(isEmpty())
 			throw new IllegalStateException();
-		
-		Move moveAtTop = head.elem;
-		head = head.next;
-		size -= 1;
-		return moveAtTop;
+
+		return container.removeFirst();
 	}
 	
 	/**
@@ -77,7 +47,7 @@ public class MovesStack {
 	 */
 	public Move top()
 	{
-		return !isEmpty() ? head.elem : null;
+		return !container.isEmpty() ? container.getFirst() : null;
 	}
 
 	/**
@@ -87,7 +57,7 @@ public class MovesStack {
 	 */
 	public boolean isEmpty()
 	{
-		return head == null;
+		return container.isEmpty();
 	}
 	
 	/**
@@ -97,6 +67,20 @@ public class MovesStack {
 	 */
 	public int getSize()
 	{
-		return size;
+		return container.size();
 	}
+	
+	public Iterator<Move> iterator()
+	{
+		return container.iterator();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

@@ -1,8 +1,9 @@
 package poo.demos.puzzle;
 
+
 public class PuzzleGame {
 
-	public static void main(String[] args) throws NoSuchFieldException, SecurityException 
+	public static void main(String[] args) 
 	{
 	}
 }

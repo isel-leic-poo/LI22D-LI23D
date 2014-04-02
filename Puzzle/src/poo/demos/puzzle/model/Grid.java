@@ -78,9 +78,6 @@ public class Grid {
 	/**
 	 * Gets the piece at the given position. If the position is free,
 	 * the method returns {@code null}.
-	 * The returned instance is immutable, that is, the operations that 
-	 * would modify the instance's state (i.e. move, setPosition) throw
-	 * an {@link UnsupportedOperationException}.
 	 * 
 	 * @param x the horizontal coordinate value (0 < x < puzzleSize)
 	 * @param y the horizontal coordinate value (0 < y < puzzleSize)
