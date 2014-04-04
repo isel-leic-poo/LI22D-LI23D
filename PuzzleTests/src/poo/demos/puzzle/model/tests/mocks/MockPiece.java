@@ -9,7 +9,19 @@ import poo.demos.puzzle.model.Piece;
  */
 public class MockPiece extends Piece
 {
-	public MockPiece(int x, int y) { super(x, y); }
+	private final int initialX, initialY;
+	
+	public MockPiece(int x, int y) 
+	{
+		initialX = x;
+		initialY = y;
+	}
+
+	@Override
+	public int getInitialX() { return initialX; }
+
+	@Override
+	public int getInitialY() { return initialY; }
 
 	@Override
 	public int getX() { return getInitialX(); }

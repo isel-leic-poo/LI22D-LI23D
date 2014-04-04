@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.matchers.JUnitMatchers.*;
 
 import poo.demos.puzzle.model.*;
 import poo.demos.puzzle.model.tests.mocks.MockPiece;
@@ -31,29 +30,6 @@ import poo.demos.puzzle.model.tests.mocks.MockPiece;
  */
 public class PieceTests {
 	
-	@Test
-	public void constructor_validArguments_noExceptionThrownAndStateCorrect() 
-	{
-		final int initialX = 2, initialY = 3; 
-		Piece piece = new MockPiece(initialX, initialY);
-		
-		assertThat(piece.getX(), is(both(equalTo(initialX)).and(equalTo(piece.getInitialX()))));
-		assertThat(piece.getY(), is(both(equalTo(initialY)).and(equalTo(piece.getInitialY()))));
-		assertThat(piece.isAtCorrectPosition(), is(true));
-	}
-	
-	@Test(expected = IllegalArgumentException.class)
-	public void constructor_negativeHorizontalCoordinateInConstructorArgument_exceptionThrown()
-	{
-		new MockPiece(-1, 3);
-	}
-	
-	@Test(expected = IllegalArgumentException.class)
-	public void constructor_negativeVerticalCoordinateInConstructorArgument_exceptionThrown()
-	{
-		new MockPiece(2, -3);
-	}
-
 	@Test
 	public void equals_equivalentPieces_returnsTrue()
 	{

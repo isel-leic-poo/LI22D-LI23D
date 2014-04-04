@@ -6,49 +6,25 @@ package poo.demos.puzzle.model;
  * Puzzle pieces have an initial position (which is considered the correct 
  * piece position) and a current position. Positions are represented as 
  * rectangular coordinates (i.e. x and y) that must be positive values (i.e. >= 0).
+ * 
+ * This class establishes the public interface for all Piece instances and contains 
+ * the implementation of the corresponding canonical methods (i.e. equivalence)  
  */
 public abstract class Piece {
 
-	/**
-	 * The instance's initial coordinates.
-	 */
-	private final int initialX, initialY;
-	
-	/**
-	 * Initiates an instance with the given coordinates.
-	 * 
-	 * @param x The horizontal coordinate value
-	 * @param y The vertical coordinate value
-	 * @throws IllegalArgumentException if either coordinate has a negative value
-	 */
-	protected Piece(int x, int y)
-	{
-		if(x < 0 || y < 0)
-			throw new IllegalArgumentException();
-
-		initialX = x;
-		initialY = y;
-	}
-	
 	/**
 	 * Gets the piece's initial horizontal coordinate.
 	 * 
 	 * @return The horizontal coordinate value
 	 */
-	public final int getInitialX()
-	{
-		return initialX;
-	}
+	public abstract int getInitialX();
 	
 	/**
 	 * Gets the piece's initial vertical coordinate.
 	 * 
 	 * @return The vertical coordinate value
 	 */
-	public final int getInitialY()
-	{
-		return initialY;
-	}
+	public abstract int getInitialY();
 	
 	/**
 	 * Checks if the piece is at its correct (initial) position.
@@ -77,6 +53,9 @@ public abstract class Piece {
 
 	// Canonical methods
 	
+	/**
+	 * {@see java.lang.Object#toString}
+	 */
 	@Override
 	public String toString() 
 	{
@@ -84,6 +63,9 @@ public abstract class Piece {
 				+ "); current=(" + getX() + "," + getY() + ") }";
 	}	
 	
+	/**
+	 * {@see java.lang.Object#hashCode}
+	 */
 	@Override
 	public int hashCode() 
 	{
@@ -98,6 +80,8 @@ public abstract class Piece {
 	 * @param other the other instance to use in the equivalence check
 	 * @return {@code true} if the current instance is equivalent to the given one,
 	 * {@code false} otherwise 
+	 * 
+	 * {@see java.lang.Object#equals}
 	 */
 	@Override
 	public boolean equals(Object other) 

@@ -2,9 +2,45 @@ package poo.demos.puzzle.model;
 
 /**
  * Class whose instances represent puzzle grids.
- * For the sake of simplification, grids are always squares. 
+ * For the sake of simplification, grids always have a squared shape. 
  */
 public class Grid {
+	
+	/**
+	 * Wrapper class used to increase the robustness of the solution.
+	 * MutablePiece instances which are used internally are never directly accessed
+	 * from the outside. Instead, the Grid implementation always produces
+	 * instances of ImmutablePiece, thus preventing direct access to the mutable state.
+	 * 
+	 * The solution is based in the Decorator Design Pattern, thereby not requiring 
+	 * defensive copying. 
+	 */
+	private static class ImmutablePiece extends Piece
+	{
+		/**
+		 * The piece instance which actually holds the required information.
+		 */
+		private final MutablePiece target;
+		
+		/**
+		 * Initiates an instance with the piece instance to be decorated.
+		 * 
+		 * @param piece The instance that actually holds the piece information.
+		 */
+		public ImmutablePiece(MutablePiece piece) { target = piece; }
+		
+		@Override
+		public int getInitialX() { return target.getInitialX(); }
+
+		@Override
+		public int getInitialY() { return target.getInitialY(); }
+
+		@Override
+		public int getX() { return target.getX(); }
+
+		@Override
+		public int getY() { return target.getY(); }
+	}
 	
 	/**
 	 * Holds the two-dimensional array that holds the puzzle's pieces. 
@@ -91,7 +127,10 @@ public class Grid {
 		if(x < 0 || x >= size || y < 0 || y >= size)
 			throw new IllegalArgumentException();
 		
-		return grid[y][x]; 
+		MutablePiece originalPiece = grid[y][x];
+		// Producing an immutable wrapper of the original piece to prevent 
+		// accidental modification from the outside.
+		return originalPiece != null ? new ImmutablePiece(originalPiece) : null; 
 	}
 
 	/**

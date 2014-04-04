@@ -15,6 +15,18 @@ import poo.demos.puzzle.model.*;
  * 
  * For your own tests I recommend you use (for now) JUnit's assertions (e.g. assertSame,
  * assertEqual, assertTrue, and so on).
+ * 
+ * The next example illustrates the use of JUnit's assertions to express the 
+ * instantiation_validConstructorArguments_noExceptionThrownAndStateCorrect unit test.
+ * <pre> 
+ * {@code
+ * 		assertEquals(2, piece.getX());
+ * 		assertEquals(2, piece.getInitialX());
+ * 		assertEquals(3, piece.getY());
+ * 		assertEquals(3, piece.getInitialY());
+ * 		assertTrue(piece.isAtCorrectPosition());
+ * }
+ * </pre>
  */
 public class MutablePieceTests {
 	

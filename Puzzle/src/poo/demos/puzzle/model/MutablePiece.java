@@ -1,7 +1,15 @@
 package poo.demos.puzzle.model;
 
+/**
+ * Class whose instances represent puzzle pieces which can be moved around.
+ */
 public class MutablePiece extends Piece {
 
+	/**
+	 * The instance's initial coordinates.
+	 */
+	private final int initialX, initialY;
+	
 	/**
 	 * The instance's current coordinates.
 	 */
@@ -16,10 +24,31 @@ public class MutablePiece extends Piece {
 	 */
 	public MutablePiece(int x, int y)
 	{
-		super(x, y);
-
-		currentX = x;
-		currentY = y;
+		if(x < 0 || y < 0)
+			throw new IllegalArgumentException();
+		
+		initialX = currentX = x;
+		initialY = currentY = y;
+	}
+	
+	/**
+	 * Gets the piece's initial horizontal coordinate.
+	 * 
+	 * @return The horizontal coordinate value
+	 */
+	public int getInitialX()
+	{
+		return initialX;
+	}
+	
+	/**
+	 * Gets the piece's initial vertical coordinate.
+	 * 
+	 * @return The vertical coordinate value
+	 */
+	public int getInitialY()
+	{
+		return initialY;
 	}
 	
 	/**
