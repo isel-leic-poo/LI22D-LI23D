@@ -1,20 +1,10 @@
 package poo.demos;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.PrintWriter;
-
 import poo.demos.puzzleandroid.R;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.TextView;
 
 public class CounterActivity extends Activity {
 
@@ -26,7 +16,7 @@ public class CounterActivity extends Activity {
 		public boolean onTouch(View view, MotionEvent event) 
 		{
 			boolean processed = false;
-			TextView counter = (TextView) view;
+			CounterView counter = (CounterView) view;
 			switch(event.getAction())
 			{
 				case MotionEvent.ACTION_DOWN:
@@ -40,7 +30,7 @@ public class CounterActivity extends Activity {
 					{
 						float delta = startY - currentY;
 						counterValue += delta < 0 ? -1 : 1;
-						counter.setText(Integer.toString(counterValue));
+						counter.setValue(counterValue);
 					}
 					processed = true;
 					break;
@@ -54,7 +44,7 @@ public class CounterActivity extends Activity {
 	}
 	
 	private static final String COUNTER_KEY = "CounterActivity.counterValue";
-	private TextView counterView;
+	private CounterView counterView;
 	private int counterValue;
 	private int initialValue;
 	
@@ -66,7 +56,7 @@ public class CounterActivity extends Activity {
 	private void load(Bundle savedInstanceState)
 	{
 		counterValue = savedInstanceState.getInt(COUNTER_KEY, initialValue);
-		counterView.setText(Integer.toString(counterValue));
+		counterView.setValue(counterValue);
 	}
 	
 	@Override
@@ -75,9 +65,9 @@ public class CounterActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_counter);
 		
-		counterView = (TextView) findViewById(R.id.counterView);
+		counterView = (CounterView) findViewById(R.id.counterView);
+		counterValue = initialValue = counterView.getValue();
 		
-		counterValue = initialValue = Integer.parseInt(counterView.getText().toString());
 		if(savedInstanceState != null)
 			load(savedInstanceState);
 		

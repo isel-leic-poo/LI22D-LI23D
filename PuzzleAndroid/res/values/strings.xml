@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Counter App</string>
     <string name="counter_title_activity">Counter</string>
-    <string name="counter_initial_value">0</string>
-
 </resources>
