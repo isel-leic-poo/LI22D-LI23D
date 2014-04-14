@@ -27,6 +27,14 @@ local.properties
 .settings/
 .loadpath
 
+# generated files
+bin/
+gen/
+
+# proguard
+project.properties
+proguard.properties
+
 # External tool builders
 .externalToolBuilders/
 

@@ -1,0 +1,26 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="poo.demos.CounterActivity"
+    tools:ignore="MergeRootFrame" >
+
+    
+    <TextView
+        android:id="@+id/counterView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/counter_initial_value"
+        android:textSize="30pt"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+	
+    <!-- 
+	<poo.demos.CounterView 
+	    android:id="@+id/myCounterView" 
+	    android:layout_width="match_parent"
+    		android:layout_height="match_parent"
+	    />
+	 -->
+</FrameLayout>
