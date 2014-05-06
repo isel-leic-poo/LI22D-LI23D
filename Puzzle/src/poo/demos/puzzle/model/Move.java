@@ -70,6 +70,7 @@ public class Move {
 	 * 
 	 * @param delta The variation to apply to the piece 
 	 * @param piece The piece to which the move is to be applied
+	 * @throws IllegalArgumentException if either argument is {@code null}
 	 */
 	public Move(Delta delta, Piece piece)
 	{

@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="app_theme" parent="@android:style/Theme.Light.NoTitleBar">
+    <style name="app_theme" parent="@android:style/Theme.Black.NoTitleBar">
     </style>
 
 </resources>
