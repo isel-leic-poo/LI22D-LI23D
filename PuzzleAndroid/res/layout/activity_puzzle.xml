@@ -11,7 +11,7 @@
     tools:context=".PuzzleActivity"
     tools:ignore="MergeRootFrame" >
 
-	<poo.demos.puzzle.view.TileView
+	<poo.demos.puzzle.view.tiles.TileView
 	    android:id="@+id/puzzleView"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"

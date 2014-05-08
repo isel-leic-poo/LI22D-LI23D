@@ -1,15 +1,15 @@
-package poo.demos.puzzle.view;
+package poo.demos.puzzle.view.tiles;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Paint.Style;
-import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,86 +19,6 @@ import android.view.View;
  * are implemented without resorting to Android's coordinate system.
  */
 public class TileView extends View {
-	
-	/**
-	 * Abstract class that visually represents tiles. 
-	 * Tiles may either be empty or they may display a puzzle piece.  
-	 */
-	private abstract class Tile
-	{
-		/**
-		 * The tile's bounds.
-		 */
-		protected RectF bounds;
-		
-		/**
-		 * Initiates the tile placing it at the given bounds.
-		 * 
-		 * @param bounds The bounds where the tile is placed
-		 */
-		protected Tile(RectF bounds)
-		{
-			this.bounds = bounds;
-		}
-		
-		/**
-		 * Draws the tile in the given canvas.
-		 * 
-		 * @param canvas The canvas where the tile will be drawn
-		 */
-		public abstract void doDraw(Canvas canvas);
-	}
-
-	/**
-	 * Class whose instances visually represent empty spaces.  
-	 */
-	private class EmptyTile extends Tile
-	{
-
-		public EmptyTile(RectF bounds) 
-		{
-			super(bounds);
-		}
-
-		@Override
-		public void doDraw(Canvas canvas) 
-		{
-			// TODO: For now, we do nothing. 
-			// Later, we will draw something that depicts an empty space.
-		}
-	}
-	
-	/**
-	 * Class whose instances visually represent puzzle pieces.  
-	 */
-	private class PuzzleTile extends Tile
-	{
-		private static final int ARC = 14;
-		private final String number;
-		private int numberX, numberY;
-		
-		public PuzzleTile(int number, RectF bounds)
-		{
-			super(bounds);
-			this.number = Integer.toString(number);
-			Rect numberBounds = new Rect();
-			tileOutlineBrush.getTextBounds(this.number, 0, this.number.length() , numberBounds);
-			numberX = (int) (bounds.left + (bounds.width() - numberBounds.width()) / 2);
-			numberY = (int) (bounds.top + bounds.height() - (bounds.height() - numberBounds.height()) / 2);
-			// Adjust descent
-			numberY -= tileOutlineBrush.getFontMetricsInt().descent;
-		}
-		
-		@Override
-		public void doDraw(Canvas canvas)
-		{
-			canvas.drawRoundRect(bounds, ARC, ARC, tileFillBrush);
-			tileOutlineBrush.setStyle(Style.STROKE);
-			canvas.drawRoundRect(bounds, ARC, ARC, tileOutlineBrush);
-			tileOutlineBrush.setStyle(Style.FILL);
-			canvas.drawText(number, numberX, numberY, tileOutlineBrush);
-		}
-	}
 	
 	private final int tileCount = 4;
 	
@@ -118,22 +38,39 @@ public class TileView extends View {
 	private List<Tile> tiles;
 	
 	/**
+	 * Holds a shortcut to the empty tile, thereby preventing a search on the 
+	 * tiles' list
+	 */
+	private Tile emptyTile;
+	
+	/**
+	 * Holds a reference to the animation queue
+	 */
+	private Handler animationQueue;
+
+	/**
+	 * Holds a reference to the listener that triggers animations.
+	 */
+	final View.OnTouchListener listener;
+	
+	/**
 	 * Helper method that initializes the tiles' container
 	 */
 	private void initTiles() 
 	{
-		tiles = new ArrayList<TileView.Tile>(tileCount * tileCount);
+		tiles = new ArrayList<Tile>(tileCount * tileCount);
 		
+		// Create puzzle tiles
 		int currentLeft = 0, currentTop = 0;
 		for(int i = 0; i < (tileCount * tileCount) - 1; ++i)
 		{
 			currentLeft = (i % tileCount) * tileSize;
 			currentTop = (i / tileCount) * tileSize;
-			tiles.add(new PuzzleTile(i + 1, new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize)));
+			tiles.add(new PuzzleTile(this, i + 1, new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize)));
 		}
 		
-		// Add empty tile
-		tiles.add(new EmptyTile(new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize)));
+		// Create empty tile
+		tiles.add(emptyTile = new EmptyTile(this, new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize)));
 	}
 	
 	/**
@@ -157,7 +94,27 @@ public class TileView extends View {
 		setLayerType(View.LAYER_TYPE_SOFTWARE, tileFillBrush);
 		setLayerType(View.LAYER_TYPE_SOFTWARE, tileOutlineBrush);
 	}
+
+	/**
+	 * Gets the brush to be used to paint the tiles' outline.
+	 * 
+	 * @return The Paint instance
+	 */
+	Paint getTileOutlineBrush()
+	{
+		return tileOutlineBrush;
+	}
 	
+	/**
+	 * Gets the brush to be used to paint the tiles' fill.
+	 * 
+	 * @return The Paint instance
+	 */
+	Paint getTileFillBrush()
+	{
+		return tileFillBrush;
+	}
+
 	/**
 	 * Initiates an instance with the given number of tiles.
 	 * 
@@ -167,7 +124,7 @@ public class TileView extends View {
 	{
 		this(context, null, 0);
 	}
-
+	
 	/**
 	 * Initiates an instance. 
 	 * 
@@ -191,19 +148,47 @@ public class TileView extends View {
 		super(context, attrs, defStyle);
 		initBrushes(context, attrs);
 		
-		this.setOnTouchListener(new View.OnTouchListener() {
+		animationQueue = new Handler();
+		
+		setOnTouchListener(listener = new View.OnTouchListener() {
+			
+			private Tile getTouchedTile(MotionEvent event)
+			{
+				int column = (int) (event.getX() / tileSize);
+				int line = (int) (event.getY() / tileSize);
+				int index = line * tileCount + column;
+				System.out.print(index + " : ");
+				return tiles.get(index);
+			}
 			
 			@Override
 			public boolean onTouch(View v, MotionEvent event) 
 			{
 				if(event.getAction() == MotionEvent.ACTION_UP)
 				{
-					int column = (int) (event.getX() / tileSize);
-					int line = (int) (event.getY() / tileSize);
-					int index = line * tileCount + column;
-					System.out.print(index + " : ");
-					Tile targetTile = tiles.get(index);
-					System.out.println(targetTile instanceof PuzzleTile ? ((PuzzleTile)targetTile).number : "empty");
+					Tile targetTile = getTouchedTile(event);
+					if(!(targetTile instanceof EmptyTile))
+					{
+						TileView.this.setOnTouchListener(null);
+						System.out.println(((PuzzleTile)targetTile).number);
+						final Runnable step = new Runnable() {
+							private int count = 0;
+							
+							public void run()
+							{
+								if(++count == 5)
+								{
+									System.out.println("Done!");
+									TileView.this.setOnTouchListener(null);
+								}
+								else {
+									System.out.println(".");
+									animationQueue.postDelayed(this, 1000);
+								}
+							}
+						};
+						animationQueue.postDelayed(step, 1000);
+					}
 				}
 				return true;
 			}
