@@ -11,15 +11,39 @@ import android.graphics.Paint.Style;
  */
 class PuzzleTile extends Tile
 {
+	/**
+	 * Used to specify the rounded corners radius.
+	 */
 	private static final int ARC = 14;
 	
+	/**
+	 * The tile's face number
+	 */
 	final String number;
+	
+	/**
+	 * The drawing coordinates of the tile's face number.
+	 */
 	private int numberX, numberY;
+	
+	/**
+	 * The bounds of the tile's face number. Used to compute the drawing 
+	 * coordinates.
+	 */
+	private final Rect numberBounds;
 	
 	/**
 	 * The brushes used to paint the tile.
 	 */
 	private final Paint tileOutlineBrush, tileFillBrush;
+	
+	private void computeNumberBounds()
+	{
+		numberX = (int) (bounds.left + (bounds.width() - numberBounds.width()) / 2);
+		numberY = (int) (bounds.top + bounds.height() - (bounds.height() - numberBounds.height()) / 2);
+		// Adjust descent
+		numberY -= tileOutlineBrush.getFontMetricsInt().descent;
+	}
 	
 	/**
 	 * Initiates a puzzle tile instance with the given bounds. 
@@ -32,15 +56,12 @@ class PuzzleTile extends Tile
 	{
 		super(parent, bounds);
 		this.number = Integer.toString(number);
-		Rect numberBounds = new Rect();
+		numberBounds = new Rect();
 		tileOutlineBrush = parent.getTileOutlineBrush();
 		tileFillBrush = parent.getTileFillBrush();
 		
 		tileOutlineBrush.getTextBounds(this.number, 0, this.number.length() , numberBounds);
-		numberX = (int) (bounds.left + (bounds.width() - numberBounds.width()) / 2);
-		numberY = (int) (bounds.top + bounds.height() - (bounds.height() - numberBounds.height()) / 2);
-		// Adjust descent
-		numberY -= tileOutlineBrush.getFontMetricsInt().descent;
+		computeNumberBounds();
 	}
 	
 	@Override
@@ -52,5 +73,19 @@ class PuzzleTile extends Tile
 		canvas.drawRoundRect(bounds, ARC, ARC, parent.getTileOutlineBrush());
 		tileOutlineBrush.setStyle(savedStyle);
 		canvas.drawText(number, numberX, numberY, parent.getTileOutlineBrush());
+	}
+
+	@Override
+	public void moveBy(float dx, float dy) 
+	{
+		super.moveBy(dx, dy);
+		computeNumberBounds();
+	}
+
+	@Override
+	public void moveTo(float newLeft, float newTop) 
+	{
+		super.moveTo(newLeft, newTop);
+		computeNumberBounds();
 	}
 }

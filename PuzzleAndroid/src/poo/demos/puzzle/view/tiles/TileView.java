@@ -9,7 +9,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -38,15 +37,15 @@ public class TileView extends View {
 	private List<Tile> tiles;
 	
 	/**
-	 * Holds a shortcut to the empty tile, thereby preventing a search on the 
+	 * Holds a shortcut to the empty tile's index, thereby preventing a search on the 
 	 * tiles' list
 	 */
-	private Tile emptyTile;
+	private int emptyTileIndex;
 	
 	/**
 	 * Holds a reference to the animation queue
 	 */
-	private Handler animationQueue;
+	private TileAnimator animationQueue;
 
 	/**
 	 * Holds a reference to the listener that triggers animations.
@@ -61,16 +60,20 @@ public class TileView extends View {
 		tiles = new ArrayList<Tile>(tileCount * tileCount);
 		
 		// Create puzzle tiles
+		final int totalTileCount = tileCount * tileCount - 1;
 		int currentLeft = 0, currentTop = 0;
-		for(int i = 0; i < (tileCount * tileCount) - 1; ++i)
+		for(int i = 0; i < totalTileCount; ++i)
 		{
 			currentLeft = (i % tileCount) * tileSize;
 			currentTop = (i / tileCount) * tileSize;
 			tiles.add(new PuzzleTile(this, i + 1, new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize)));
 		}
 		
-		// Create empty tile
-		tiles.add(emptyTile = new EmptyTile(this, new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize)));
+		// Create empty tile and position it at the last available space
+		currentLeft = (tileCount - 1) * tileSize;
+		currentTop = (tileCount -1) * tileSize;
+		tiles.add(new EmptyTile(this, new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize)));
+		emptyTileIndex = totalTileCount;
 	}
 	
 	/**
@@ -148,17 +151,18 @@ public class TileView extends View {
 		super(context, attrs, defStyle);
 		initBrushes(context, attrs);
 		
-		animationQueue = new Handler();
+		final int ANIMATION_STEPS = 20;
+		
+		// TODO: Modify to use property injection
+		animationQueue = new TileAnimator(ANIMATION_STEPS);
 		
 		setOnTouchListener(listener = new View.OnTouchListener() {
 			
-			private Tile getTouchedTile(MotionEvent event)
+			private int getTouchedTileIndex(MotionEvent event)
 			{
 				int column = (int) (event.getX() / tileSize);
 				int line = (int) (event.getY() / tileSize);
-				int index = line * tileCount + column;
-				System.out.print(index + " : ");
-				return tiles.get(index);
+				return line * tileCount + column;
 			}
 			
 			@Override
@@ -166,28 +170,35 @@ public class TileView extends View {
 			{
 				if(event.getAction() == MotionEvent.ACTION_UP)
 				{
-					Tile targetTile = getTouchedTile(event);
+					final int targetTileIndex = getTouchedTileIndex(event);
+					final Tile targetTile = tiles.get(targetTileIndex);
+					final Tile emptyTile = tiles.get(emptyTileIndex);
+					final float targetLeft = targetTile.getBounds().left;
+					final float targetTop = targetTile.getBounds().top;
+					
 					if(!(targetTile instanceof EmptyTile))
 					{
 						TileView.this.setOnTouchListener(null);
-						System.out.println(((PuzzleTile)targetTile).number);
-						final Runnable step = new Runnable() {
-							private int count = 0;
-							
-							public void run()
+
+						animationQueue.doMove(targetTile, emptyTile.getBounds(), new TileAnimator.Callback() {
+							@Override
+							public void onCompleted() 
 							{
-								if(++count == 5)
-								{
-									System.out.println("Done!");
-									TileView.this.setOnTouchListener(null);
-								}
-								else {
-									System.out.println(".");
-									animationQueue.postDelayed(this, 1000);
-								}
+								// Exchange tiles on indexing structure
+								tiles.set(targetTileIndex, emptyTile);
+								tiles.set(emptyTileIndex, targetTile);
+								emptyTileIndex = targetTileIndex;
+								emptyTile.moveTo(targetLeft, targetTop);
+								TileView.this.invalidate();
+								TileView.this.setOnTouchListener(listener);
 							}
-						};
-						animationQueue.postDelayed(step, 1000);
+
+							@Override
+							public void onStep(RectF affectedArea) 
+							{
+								TileView.this.invalidate();
+							}
+						});
 					}
 				}
 				return true;
