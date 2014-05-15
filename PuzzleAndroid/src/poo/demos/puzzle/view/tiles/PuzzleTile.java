@@ -1,5 +1,6 @@
 package poo.demos.puzzle.view.tiles;
 
+import poo.demos.puzzle.view.Moveable;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -9,7 +10,7 @@ import android.graphics.Paint.Style;
 /**
  * Class whose instances visually represent puzzle pieces.  
  */
-class PuzzleTile extends Tile
+class PuzzleTile extends Tile implements Moveable
 {
 	/**
 	 * Used to specify the rounded corners radius.
@@ -78,14 +79,20 @@ class PuzzleTile extends Tile
 	@Override
 	public void moveBy(float dx, float dy) 
 	{
-		super.moveBy(dx, dy);
+		this.bounds.offset(dx, dy);
 		computeNumberBounds();
 	}
 
 	@Override
 	public void moveTo(float newLeft, float newTop) 
 	{
-		super.moveTo(newLeft, newTop);
+		this.bounds.offsetTo(newLeft, newTop);
 		computeNumberBounds();
+	}
+
+	@Override
+	public RectF getCurrentBounds() 
+	{
+		return this.bounds;
 	}
 }

@@ -38,16 +38,8 @@ abstract class Tile {
 	}
 	
 	/**
-	 * Draws the tile in the given canvas.
-	 * 
-	 * @param canvas The canvas where the tile will be drawn
-	 */
-	public abstract void doDraw(Canvas canvas);
-	
-	/**
 	 * Gets the tile's bounds. The behavior that results from the direct modification 
-	 * of the returned instance is unspecified. To modify a tile's bounds, use instead
-	 * {@link #moveBy(float, float)} and {@link } 
+	 * of the returned instance is unspecified.  
 	 * 
 	 * @return The tile's bounds
 	 */
@@ -57,24 +49,21 @@ abstract class Tile {
 	}
 	
 	/**
-	 * Moves the tile instance by displacing it by the given delta.
-	 *  
-	 * @param dx The horizontal displacement
-	 * @param dy The vertical displacement
-	 */
-	public void moveBy(float dx, float dy)
-	{
-		bounds.offset(dx, dy);
-	}
-	
-	/**
-	 * Moves the tile instance to the given position (i.e. the new upper-left corner).
+	 * Sets the instance's position, that is, its bounding rectangle is repositioned to
+	 * the given coordinates.
 	 * 
-	 * @param newLeft The new horizontal coordinate
-	 * @param newTop The new vertical coordinate
+	 * @param newLeft The horizontal coordinate
+	 * @param newTop The vertical coordinate
 	 */
-	public void moveTo(float newLeft, float newTop)
+	public final void setPosition(float newLeft, float newTop)
 	{
 		bounds.offsetTo(newLeft, newTop);
 	}
+	
+	/**
+	 * Draws the tile in the given canvas.
+	 * 
+	 * @param canvas The canvas where the tile will be drawn
+	 */
+	public abstract void doDraw(Canvas canvas);
 }

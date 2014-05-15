@@ -3,11 +3,15 @@ package poo.demos.puzzle.view.tiles;
 import java.util.ArrayList;
 import java.util.List;
 
+import poo.demos.puzzle.view.Animator;
+import poo.demos.puzzle.view.Moveable;
+
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -45,7 +49,7 @@ public class TileView extends View {
 	/**
 	 * Holds a reference to the animation queue
 	 */
-	private TileAnimator animationQueue;
+	private Animator animationQueue;
 
 	/**
 	 * Holds a reference to the listener that triggers animations.
@@ -94,8 +98,7 @@ public class TileView extends View {
 		backgroundBrush = new Paint(tileFillBrush);
 		backgroundBrush.setAlpha(100);
 
-		setLayerType(View.LAYER_TYPE_SOFTWARE, tileFillBrush);
-		setLayerType(View.LAYER_TYPE_SOFTWARE, tileOutlineBrush);
+		setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 	}
 
 	/**
@@ -151,10 +154,10 @@ public class TileView extends View {
 		super(context, attrs, defStyle);
 		initBrushes(context, attrs);
 		
-		final int ANIMATION_STEPS = 20;
+		final int ANIMATION_STEPS = 30;
 		
 		// TODO: Modify to use property injection
-		animationQueue = new TileAnimator(ANIMATION_STEPS);
+		animationQueue = new Animator(ANIMATION_STEPS);
 		
 		setOnTouchListener(listener = new View.OnTouchListener() {
 			
@@ -172,34 +175,41 @@ public class TileView extends View {
 				{
 					final int targetTileIndex = getTouchedTileIndex(event);
 					final Tile targetTile = tiles.get(targetTileIndex);
-					final Tile emptyTile = tiles.get(emptyTileIndex);
-					final float targetLeft = targetTile.getBounds().left;
-					final float targetTop = targetTile.getBounds().top;
 					
-					if(!(targetTile instanceof EmptyTile))
-					{
-						TileView.this.setOnTouchListener(null);
+					if(!(targetTile instanceof Moveable))
+						return false;
+					
+					final Tile emptyTile = tiles.get(emptyTileIndex);
+					final Moveable subject = (Moveable) targetTile;
+					final float subjectInitialLeft = subject.getCurrentBounds().left;
+					final float subjectInitialTop = subject.getCurrentBounds().top;
+					
+					TileView.this.setOnTouchListener(null);
 
-						animationQueue.doMove(targetTile, emptyTile.getBounds(), new TileAnimator.Callback() {
-							@Override
-							public void onCompleted() 
-							{
-								// Exchange tiles on indexing structure
-								tiles.set(targetTileIndex, emptyTile);
-								tiles.set(emptyTileIndex, targetTile);
-								emptyTileIndex = targetTileIndex;
-								emptyTile.moveTo(targetLeft, targetTop);
-								TileView.this.invalidate();
-								TileView.this.setOnTouchListener(listener);
-							}
+					animationQueue.submitMove(subject, emptyTile.getBounds(), new Animator.OnAnimationListener() {
+						private final Rect dirty = new Rect();
+						
+						@Override
+						public void onCompleted(Moveable subject, RectF affectedArea) 
+						{
+							// Exchange tiles on indexing structure
+							tiles.set(targetTileIndex, emptyTile);
+							tiles.set(emptyTileIndex, targetTile);
+							emptyTileIndex = targetTileIndex;
+							emptyTile.setPosition(subjectInitialLeft, subjectInitialTop);
 
-							@Override
-							public void onStep(RectF affectedArea) 
-							{
-								TileView.this.invalidate();
-							}
-						});
-					}
+							affectedArea.roundOut(dirty);
+							TileView.this.invalidate(dirty);
+							TileView.this.setOnTouchListener(listener);
+						}
+
+						@Override
+						public void onStepPerformed(Moveable subject, RectF affectedArea) 
+						{
+							affectedArea.roundOut(dirty);
+							TileView.this.invalidate(dirty);
+						}
+					});
 				}
 				return true;
 			}
@@ -223,7 +233,7 @@ public class TileView extends View {
 		if(changed)
 			initTiles();
 	}
-
+	
 	@Override
 	protected void onDraw(Canvas canvas) 
 	{
