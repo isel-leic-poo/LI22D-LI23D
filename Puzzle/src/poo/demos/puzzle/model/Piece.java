@@ -4,8 +4,9 @@ package poo.demos.puzzle.model;
  * Base abstract class for representing puzzle pieces.
  * 
  * Puzzle pieces have an initial position (which is considered the correct 
- * piece position) and a current position. Positions are represented as 
- * rectangular coordinates (i.e. x and y) that must be positive values (i.e. >= 0).
+ * piece position) and a current position. Positions are represented as instances of
+ * {@link Position}, which contain rectangular coordinates (i.e. x and y) that must 
+ * be positive values (i.e. >= 0).
  * 
  * This class establishes the public interface for all Piece instances and contains 
  * the implementation of the corresponding canonical methods (i.e. equivalence)  
@@ -13,18 +14,11 @@ package poo.demos.puzzle.model;
 public abstract class Piece {
 
 	/**
-	 * Gets the piece's initial horizontal coordinate.
+	 * Gets the piece's initial position.
 	 * 
-	 * @return The horizontal coordinate value
+	 * @return The corresponding position instance
 	 */
-	public abstract int getInitialX();
-	
-	/**
-	 * Gets the piece's initial vertical coordinate.
-	 * 
-	 * @return The vertical coordinate value
-	 */
-	public abstract int getInitialY();
+	public abstract Position getInitialPosition();
 	
 	/**
 	 * Checks if the piece is at its correct (initial) position.
@@ -34,23 +28,16 @@ public abstract class Piece {
 	 */
 	public boolean isAtCorrectPosition()
 	{
-		return getX() == getInitialX() && getY() == getInitialY(); 
+		return getPosition().equals(getInitialPosition()); 
 	}
 
 	/**
-	 * Gets the piece's current horizontal coordinate.
+	 * Gets the piece's current position.
 	 * 
-	 * @return The horizontal coordinate value
+	 * @return The corresponding position instance
 	 */
-	public abstract int getX();
+	public abstract Position getPosition();
 	
-	/**
-	 * Gets the piece's current vertical coordinate.
-	 * 
-	 * @return The vertical coordinate value
-	 */
-	public abstract int getY();
-
 	// Canonical methods
 	
 	/**
@@ -59,8 +46,12 @@ public abstract class Piece {
 	@Override
 	public String toString() 
 	{
-		return "{ initial=(" + getInitialX() + "," + getInitialY() 
-				+ "); current=(" + getX() + "," + getY() + ") }";
+		return new StringBuilder("{ initial=")
+			.append(getInitialPosition())
+			.append("; current=")
+			.append(getPosition())
+			.append(" }")
+			.toString();
 	}	
 	
 	/**
@@ -93,9 +84,7 @@ public abstract class Piece {
 			return true;
 		
 		Piece otherPiece = (Piece) other;
-		return 	this.getInitialX() == otherPiece.getInitialX() 
-				&& this.getInitialY() == otherPiece.getInitialY() 
-				&& this.getX() == otherPiece.getX() 
-				&& this.getY() == otherPiece.getY();
+		return 	this.getInitialPosition().equals(otherPiece.getInitialPosition()) 
+				&& this.getPosition().equals(otherPiece.getPosition()); 
 	}
 }

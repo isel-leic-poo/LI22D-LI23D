@@ -6,14 +6,14 @@ package poo.demos.puzzle.model;
 public class MutablePiece extends Piece {
 
 	/**
-	 * The instance's initial coordinates.
+	 * The instance's initial position.
 	 */
-	private final int initialX, initialY;
+	private final Position initialPosition;
 	
 	/**
-	 * The instance's current coordinates.
+	 * The instance's current position.
 	 */
-	private int currentX, currentY;
+	private Position currentPosition;
 	
 	/**
 	 * Initiates an instance with the given coordinates.
@@ -24,87 +24,67 @@ public class MutablePiece extends Piece {
 	 */
 	public MutablePiece(int x, int y)
 	{
-		if(x < 0 || y < 0)
-			throw new IllegalArgumentException();
-		
-		initialX = currentX = x;
-		initialY = currentY = y;
+		this(Position.fromCoordinates(x, y));
 	}
-	
+
 	/**
-	 * Gets the piece's initial horizontal coordinate.
+	 * Initiates an instance with the given position.
 	 * 
-	 * @return The horizontal coordinate value
+	 * @param position The instance's initial position
 	 */
-	public int getInitialX()
+	public MutablePiece(Position position)
 	{
-		return initialX;
+		initialPosition = currentPosition = position;
 	}
-	
+
 	/**
-	 * Gets the piece's initial vertical coordinate.
+	 * Gets the piece's initial position.
 	 * 
-	 * @return The vertical coordinate value
-	 */
-	public int getInitialY()
-	{
-		return initialY;
-	}
-	
-	/**
-	 * Gets the piece's current horizontal coordinate.
-	 * 
-	 * @return The horizontal coordinate value
+	 * @return The instance's initial position
 	 */
 	@Override
-	public int getX()
+	public Position getInitialPosition() 
 	{
-		return currentX;
+		return initialPosition;
 	}
 	
 	/**
-	 * Gets the piece's current vertical coordinate.
+	 * Gets the piece's current position.
 	 * 
-	 * @return The vertical coordinate value
+	 * @return The instance's current position
 	 */
 	@Override
-	public int getY()
+	public Position getPosition() 
 	{
-		return currentY;
+		return currentPosition;
 	}
-		
+	
 	/**
-	 * Sets the instance's current position to the given coordinate values.
+	 * Moves the instance's to the given position.
 	 * 
-	 * @param x the horizontal coordinate value
-	 * @param y the vertical coordinate value
-	 * @throws IllegalArgumentException if either coordinate has a negative value
+	 * @param newPosition the instance's new position
 	 */
-	public void setPosition(int x, int y)
+	public void moveTo(Position newPosition)
 	{
-		if(x < 0 || y < 0)
-			throw new IllegalArgumentException();
-		
-		currentX = x;
-		currentY = y;
+		currentPosition = newPosition;
 	}
 	
 	/**
 	 * Moves the instance by the given distance.
 	 * 
-	 * @param deltaX the distance's horizontal coordinate. Positive values
-	 * move the piece to the right and negative values move it to the left 
-	 * @param deltaY the distance's vertical coordinate. Positive values
-	 * move the piece down and negative values move it up 
+	 * @param delta the distance that the instance will move. 
 	 * @throws IllegalStateException if the resulting position is an illegal one,
 	 * that is, it has a negative value in one of its coordinates
 	 */
-	public void move(int deltaX, int deltaY)
+	public void moveBy(Move.Delta delta)
 	{
-		if(currentX + deltaX < 0 || currentY + deltaY < 0)
-			throw new IllegalStateException();
-		
-		currentX += deltaX;
-		currentY += deltaY;
+		try {
+			currentPosition = Position.fromCoordinates(currentPosition.X + delta.X, currentPosition.Y + delta.Y);
+		}
+		catch(IllegalArgumentException invalidDelta)
+		{
+			// Convert exception to convey the correct semantics 
+			throw new IllegalStateException(invalidDelta);
+		}
 	}
 }

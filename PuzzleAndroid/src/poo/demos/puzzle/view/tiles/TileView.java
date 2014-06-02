@@ -3,6 +3,10 @@ package poo.demos.puzzle.view.tiles;
 import java.util.ArrayList;
 import java.util.List;
 
+import poo.demos.puzzle.model.Piece;
+import poo.demos.puzzle.model.PieceMovedEvent;
+import poo.demos.puzzle.model.Position;
+import poo.demos.puzzle.model.Puzzle;
 import poo.demos.puzzle.view.Animator;
 import poo.demos.puzzle.view.Moveable;
 
@@ -22,8 +26,18 @@ import android.view.View;
  * are implemented without resorting to Android's coordinate system.
  */
 public class TileView extends View {
-	
-	private final int tileCount = 4;
+		
+	private static final int DEFAULT_FONT_SIZE = 50;
+	private static final int DEFAULT_PUZZLE_SIZE = 4;
+
+	private static final String NAMESPACE = "http://schemas.android.com/apk/res-auto";
+	private static final String FONT_SIZE_ATTR = "fontSize";
+	private static final String INITIAL_PUZZLE_SIZE_ATTR = "initialPuzzleSize";
+
+	/**
+	 * The number of tiles in each side of the puzzle
+	 */
+	private int puzzleSideTileCount;
 	
 	/**
 	 * Used to cache the current tile size
@@ -47,6 +61,11 @@ public class TileView extends View {
 	private int emptyTileIndex;
 	
 	/**
+	 * The current puzzle instance. 
+	 */
+	private Puzzle puzzleModel;
+	
+	/**
 	 * Holds a reference to the animation queue
 	 */
 	private Animator animationQueue;
@@ -61,21 +80,24 @@ public class TileView extends View {
 	 */
 	private void initTiles() 
 	{
-		tiles = new ArrayList<Tile>(tileCount * tileCount);
+		tiles = new ArrayList<Tile>(puzzleSideTileCount * puzzleSideTileCount);
 		
 		// Create puzzle tiles
-		final int totalTileCount = tileCount * tileCount - 1;
+		final int totalTileCount = puzzleSideTileCount * puzzleSideTileCount - 1;
 		int currentLeft = 0, currentTop = 0;
 		for(int i = 0; i < totalTileCount; ++i)
 		{
-			currentLeft = (i % tileCount) * tileSize;
-			currentTop = (i / tileCount) * tileSize;
-			tiles.add(new PuzzleTile(this, i + 1, new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize)));
+			int column = i % puzzleSideTileCount;
+			int row = i / puzzleSideTileCount;
+			currentLeft = column * tileSize;
+			currentTop = row * tileSize;
+			Piece piece = puzzleModel.getPieceAtPosition(Position.fromCoordinates(column, row));
+			tiles.add(new PuzzleTile(this, i + 1, new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize), piece));
 		}
 		
 		// Create empty tile and position it at the last available space
-		currentLeft = (tileCount - 1) * tileSize;
-		currentTop = (tileCount -1) * tileSize;
+		currentLeft = (puzzleSideTileCount - 1) * tileSize;
+		currentTop = (puzzleSideTileCount -1) * tileSize;
 		tiles.add(new EmptyTile(this, new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize)));
 		emptyTileIndex = totalTileCount;
 	}
@@ -93,7 +115,8 @@ public class TileView extends View {
 		
 		tileOutlineBrush = new Paint();
 		tileOutlineBrush.setColor(Color.DKGRAY);
-		tileOutlineBrush.setTextSize(50);
+		int fontSize = attrs.getAttributeIntValue(NAMESPACE, FONT_SIZE_ATTR, DEFAULT_FONT_SIZE);
+		tileOutlineBrush.setTextSize(fontSize);
 		
 		backgroundBrush = new Paint(tileFillBrush);
 		backgroundBrush.setAlpha(100);
@@ -154,6 +177,8 @@ public class TileView extends View {
 		super(context, attrs, defStyle);
 		initBrushes(context, attrs);
 		
+		puzzleSideTileCount = attrs.getAttributeIntValue(NAMESPACE, INITIAL_PUZZLE_SIZE_ATTR, DEFAULT_PUZZLE_SIZE);
+
 		final int ANIMATION_STEPS = 30;
 		
 		// TODO: Modify to use property injection
@@ -165,7 +190,7 @@ public class TileView extends View {
 			{
 				int column = (int) (event.getX() / tileSize);
 				int line = (int) (event.getY() / tileSize);
-				return line * tileCount + column;
+				return line * puzzleSideTileCount + column;
 			}
 			
 			@Override
@@ -179,13 +204,17 @@ public class TileView extends View {
 					if(!(targetTile instanceof Moveable))
 						return false;
 					
-					final Tile emptyTile = tiles.get(emptyTileIndex);
+					if(!puzzleModel.doMove(targetTile.piece))
+						return true;
+					
+					// Move has been performed. Let's trigger the animation
 					final Moveable subject = (Moveable) targetTile;
 					final float subjectInitialLeft = subject.getCurrentBounds().left;
 					final float subjectInitialTop = subject.getCurrentBounds().top;
 					
 					TileView.this.setOnTouchListener(null);
 
+					final Tile emptyTile = tiles.get(emptyTileIndex);
 					animationQueue.submitMove(subject, emptyTile.getBounds(), new Animator.OnAnimationListener() {
 						private final Rect dirty = new Rect();
 						
@@ -216,13 +245,47 @@ public class TileView extends View {
 		});
 	}
 
+	/**
+	 * Gets the number of tiles in both sides of the puzzle.
+	 * 
+	 * @return The number of tiles
+	 */
+	public int getTilesPerSide()
+	{
+		return puzzleSideTileCount;
+	}
+	
+	/**
+	 * Sets the view's model.
+	 * 
+	 * @param puzzle The view's model instance.
+	 * @throw IllegalArgumentException if the argument is {@code null}
+	 */
+	public void setModel(Puzzle puzzle)
+	{
+		if(puzzle == null)
+			throw new IllegalArgumentException();
+		
+		puzzleModel = puzzle;
+		puzzleModel.registerOnModificationListener(new Puzzle.OnModificationListener() {
+			@Override
+			public void onPieceMoved(PieceMovedEvent evt) 
+			{
+				System.out.println("piece moved from " + evt.from + " to " + evt.to);
+			}
+		});
+		
+		initTiles();
+		invalidate();
+	}
+	
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) 
 	{
 		// Compute required square size
 		int measuredSize = Math.min(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.getSize(heightMeasureSpec));
 		// Make sure it is a multiple of the number of tiles
-		measuredSize = (tileSize = measuredSize / tileCount) * tileCount;
+		measuredSize = (tileSize = measuredSize / puzzleSideTileCount) * puzzleSideTileCount;
 		// Set the view's size
 		setMeasuredDimension(measuredSize, measuredSize);
 	}

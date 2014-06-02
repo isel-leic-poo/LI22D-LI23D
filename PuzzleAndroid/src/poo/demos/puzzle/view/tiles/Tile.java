@@ -1,5 +1,6 @@
 package poo.demos.puzzle.view.tiles;
 
+import poo.demos.puzzle.model.Piece;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 
@@ -26,17 +27,37 @@ abstract class Tile {
 	protected final RectF bounds;
 	
 	/**
-	 * Initiates the tile placing it at the given bounds.
+	 * The associated piece instance.
+	 */
+	protected final Piece piece;
+	
+	/**
+	 * Initiates the tile placing it at the given bounds and associating it to a 
+	 * specific piece instance.
+	 * 
+	 * @param tileView The TileView instance that contains the current tile 
+	 * @param bounds The bounds where the tile is placed
+	 * @param piece The piece instance associated to the current tile
+	 */
+	protected Tile(TileView parent, RectF bounds, Piece piece)
+	{
+		this.parent = parent;
+		this.bounds = bounds;
+		this.piece = piece;
+	}
+	
+	/**
+	 * Initiates the tile placing it at the given bounds without associating it to a 
+	 * specific piece instance.
 	 * 
 	 * @param tileView The TileView instance that contains the current tile 
 	 * @param bounds The bounds where the tile is placed
 	 */
 	protected Tile(TileView parent, RectF bounds)
 	{
-		this.parent = parent;
-		this.bounds = bounds;
+		this(parent, bounds, null);
 	}
-	
+
 	/**
 	 * Gets the tile's bounds. The behavior that results from the direct modification 
 	 * of the returned instance is unspecified.  

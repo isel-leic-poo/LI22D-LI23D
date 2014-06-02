@@ -15,7 +15,7 @@ public class Move {
 		 * The existing enumeration instances. Notice that the order of declaration
 		 * is relevant: it is used to compute the reverse delta.
 		 */
-		DOWN(0,1), UP(0,-1), RIGHT(1,0), LEFT(-1,0); 
+		STEP_DOWN(0,1), STEP_UP(0,-1), STEP_RIGHT(1,0), STEP_LEFT(-1,0); 
 		
 		/**
 		 * The horizontal delta
@@ -52,6 +52,26 @@ public class Move {
 			// order of the declaration of the enum's instances.
 			int reverseIndex = (Math.abs(X) * 2) + (X + Y + 1) / 2;
 			return values[reverseIndex];
+		}
+		
+		/**
+		 * Gets the instance that represents the given coordinates' variation, 
+		 * or null if none exists.
+		 * 
+		 * Note that the implementation does not ensure that a {@code null} value 
+		 * is always returned for invalid coordinates (a best effort approach).
+		 * It is the responsibility of the call site to ensure that the coordinates 
+		 * are within the represented range.
+		 * 
+		 * @param dX The horizontal variation
+		 * @param dY The vertical variation
+		 * @return The instance that represents the given variation 
+		 */
+		public static Delta getInstanceFromCoordinates(int dX, int dY)
+		{
+			if(Math.abs(dX + dY) != 1) return null;
+			int index = Math.abs(dX) * 2 + Math.abs((dX + dY) - 1) / 2;
+			return index < 0 || index >= values().length ? null : values()[index];
 		}
 	}
 	

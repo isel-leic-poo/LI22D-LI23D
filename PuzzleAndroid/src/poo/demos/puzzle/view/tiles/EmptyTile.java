@@ -8,9 +8,17 @@ import android.graphics.RectF;
  */
 class EmptyTile extends Tile
 {
+	/**
+	 * 
+	 * @param parent
+	 * @param bounds
+	 */
 	public EmptyTile(TileView parent, RectF bounds) 
 	{
 		super(parent, bounds);
+		
+		if(parent == null || bounds == null)
+			throw new IllegalArgumentException();
 	}
 
 	@Override

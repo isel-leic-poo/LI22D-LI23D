@@ -1,5 +1,6 @@
 package poo.demos.puzzle.view.tiles;
 
+import poo.demos.puzzle.model.Piece;
 import poo.demos.puzzle.view.Moveable;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -52,10 +53,16 @@ class PuzzleTile extends Tile implements Moveable
 	 * @param parent The tile's parent view
 	 * @param number The tile's face number
 	 * @param bounds The tile's initial bounds
+	 * @param piece The piece instance associated to the current tile
+	 * @throw IllegalArgumentException if any of the given arguments are {@code null}
 	 */
-	public PuzzleTile(TileView parent, int number, RectF bounds)
+	public PuzzleTile(TileView parent, int number, RectF bounds, Piece piece)
 	{
-		super(parent, bounds);
+		super(parent, bounds, piece);
+		
+		if(piece == null || parent == null || bounds == null)
+			throw new IllegalArgumentException();
+		
 		this.number = Integer.toString(number);
 		numberBounds = new Rect();
 		tileOutlineBrush = parent.getTileOutlineBrush();

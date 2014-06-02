@@ -26,7 +26,7 @@ public class MovesStackTests {
 	{
 		MovesStack moves = new MovesStack();
 		assertTrue(moves.isEmpty());
-		Move someMove = new Move(Delta.DOWN, new MockPiece(0, 0));
+		Move someMove = new Move(Delta.STEP_DOWN, new MockPiece(0, 0));
 		moves.push(someMove);
 		assertFalse(moves.isEmpty());
 		Move removedMove = moves.pop();
@@ -40,11 +40,11 @@ public class MovesStackTests {
 		MovesStack moves = new MovesStack();
 		Piece piece = new MockPiece(0, 0);
 		// Adding moves to the stack
-		Move firstMove = new Move(Delta.DOWN, piece);
+		Move firstMove = new Move(Delta.STEP_DOWN, piece);
 		moves.push(firstMove);
-		Move secondMove = new Move(Delta.RIGHT, piece);
+		Move secondMove = new Move(Delta.STEP_RIGHT, piece);
 		moves.push(secondMove);
-		Move thirdMove = new Move(Delta.DOWN, piece);
+		Move thirdMove = new Move(Delta.STEP_DOWN, piece);
 		moves.push(thirdMove);
 		// Check for correctness of current stack state
 		assertEquals(3, moves.getSize());

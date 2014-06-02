@@ -74,13 +74,4 @@ public class MovesStack {
 	{
 		return container.iterator();
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
 }

@@ -30,16 +30,10 @@ public class Grid {
 		public ImmutablePiece(MutablePiece piece) { target = piece; }
 		
 		@Override
-		public int getInitialX() { return target.getInitialX(); }
+		public Position getInitialPosition() { return target.getInitialPosition(); }
 
 		@Override
-		public int getInitialY() { return target.getInitialY(); }
-
-		@Override
-		public int getX() { return target.getX(); }
-
-		@Override
-		public int getY() { return target.getY(); }
+		public Position getPosition() { return target.getPosition(); }
 	}
 	
 	/**
@@ -48,34 +42,27 @@ public class Grid {
 	private final MutablePiece[][] grid;
 	
 	/**
+	 * Holds the current position of the grid's empty space. 
+	 */
+	private Position emptySpacePosition;
+	
+	/**
 	 * The puzzle's size
 	 */
 	private int size;
 	
 	/**
-	 * Initializes a grid instance with the given size.
-	 *  
-	 * @param size the size of the square
-	 * @throws IllegalArgumentException if size is less or equal than {@code 0} 
-	 */
-	private Grid(int size)
-	{
-		this.size = size;
-		grid = new MutablePiece[size][size];
-	}
-	
-	/**
-	 * Factory method that produces a shuffled puzzle. 
+	 * Helper method that produces an array of {@link MutablePiece} instances to be used
+	 * in the grid.
 	 * 
-	 * Implementation note: The current algorithm always leaves an empty space
-	 * at the bottom rightmost position of the grid.
-	 *  
 	 * @param size the size of the puzzle's side. The size of the puzzle must be, at least,
 	 * of two elements per side. 
-	 * @return the shuffled instance
+	 * @return the instance
 	 * @throws IllegalArgumentException if size is less or equal than {@code 1} 
+	 * @return The array of {@link MutablePiece} instances to be used
+	 * to initialize the grid.
 	 */
-	public static Grid createRandomPuzzle(int size)
+	private static MutablePiece[] createMutablePieces(int size)
 	{
 		if(size <= 1)
 			throw new IllegalArgumentException();
@@ -91,6 +78,75 @@ public class Grid {
 			pieces[idx] = new MutablePiece(initialX, initialY);
 		}
 
+		return pieces;
+	}
+	
+	/**
+	 * Initializes a grid instance with the given size.
+	 *  
+	 * @param size the size of the square
+	 * @throws IllegalArgumentException if size is less or equal than {@code 0} 
+	 */
+	private Grid(int size)
+	{
+		this.size = size;
+		grid = new MutablePiece[size][size];
+		emptySpacePosition = Position.fromCoordinates(size-1, size-1);
+	}
+
+	/**
+	 * Helper method that checks if a given position is within the grid's bounds.
+	 * 
+	 * @param position The instance to be checked
+	 * @return {@code true} if it is a valid position, {@false} otherwise
+	 */
+	private boolean isPositionWithinBounds(Position position)
+	{
+		return !(position.X < 0 || position.X >= size || position.Y < 0 || position.Y >= size);
+	}
+	
+	/**
+	 * Helper method that moves the given piece to the specified position, if it is an adjacent one.
+	 *  
+	 * @param piece The piece to be moved
+	 * @param destination The position where the piece is to be moved to
+	 * @return {@code true} if the piece has been moved, {@code false} if the piece 
+	 * cannot be moved, that is, it is not adjacent to the specified position.
+	 */
+	private boolean doMoveInternal(Piece piece, Position destination)
+	{
+		final int TOTAL_DELTA_TO_ADJACENT = 1; 
+		int totalDelta = Math.abs((piece.getPosition().X - destination.X) + (piece.getPosition().Y - destination.Y));
+		
+		// Not moving to the adjacent position
+		if(totalDelta != TOTAL_DELTA_TO_ADJACENT)
+			return false;
+		
+		emptySpacePosition = piece.getPosition();
+		MutablePiece targetPiece = grid[piece.getPosition().Y][piece.getPosition().X];
+		grid[emptySpacePosition.Y][emptySpacePosition.X] = null;
+		targetPiece.moveTo(destination);
+		grid[piece.getPosition().Y][piece.getPosition().X] = targetPiece;
+
+		return true;
+	}
+	
+	/**
+	 * Factory method that produces a shuffled puzzle. 
+	 * 
+	 * Implementation note: The current algorithm always leaves an empty space
+	 * at the bottom rightmost position of the grid.
+	 *  
+	 * @param size the size of the puzzle's side. The size of the puzzle must be, at least,
+	 * of two elements per side. 
+	 * @return the shuffled instance
+	 * @throws IllegalArgumentException if size is less or equal than {@code 1} 
+	 */
+	public static Grid createRandomPuzzle(int size)
+	{
+		// Initialize placeholder
+		MutablePiece[] pieces = createMutablePieces(size);
+		
 		// Initialize grid 
 		Grid instance = new Grid(size);
 		
@@ -104,9 +160,31 @@ public class Grid {
 			// Place it
 			int currentX = idx % size;
 			int currentY = idx / size;
-			selectedPiece.setPosition(currentX, currentY);
+			selectedPiece.moveTo(Position.fromCoordinates(currentX, currentY));
 			instance.grid[currentY][currentX] = selectedPiece;
 		}
+		
+		return instance;
+	}
+	
+	/**
+	 * Factory method that produces a puzzle with its pieces at their original positions. 
+	 * 
+	 * @param size the size of the puzzle's side. The size of the puzzle must be, at least,
+	 * of two elements per side. 
+	 * @return the instance
+	 * @throws IllegalArgumentException if size is less or equal than {@code 1} 
+	 */
+	public static Grid createPuzzle(int size)
+	{
+		// Initialize placeholder
+		MutablePiece[] pieces = createMutablePieces(size);
+		
+		// Initialize grid 
+		Grid instance = new Grid(size);
+		
+		for(int idx = 0; idx < pieces.length; ++idx)
+			instance.grid[idx / size][idx % size] = pieces[idx];
 		
 		return instance;
 	}
@@ -115,8 +193,29 @@ public class Grid {
 	 * Gets the piece at the given position. If the position is free,
 	 * the method returns {@code null}.
 	 * 
+	 * @param position the {@link Position} instance
+	 * @return the piece at the given position, or {@code null} if that position 
+	 * is empty
+	 * @throws IllegalArgumentException if the given position is not within the 
+	 * grid's bounds 
+	 */
+	public Piece getPieceAtPosition(Position position)
+	{
+		if(!isPositionWithinBounds(position))
+			throw new IllegalArgumentException();
+		
+		MutablePiece originalPiece = grid[position.Y][position.X];
+		// Producing an immutable wrapper of the original piece to prevent 
+		// accidental modification from the outside.
+		return originalPiece != null ? new ImmutablePiece(originalPiece) : null; 
+	}
+
+	/**
+	 * Gets the piece at the given position. If the position is free,
+	 * the method returns {@code null}.
+	 * 
 	 * @param x the horizontal coordinate value (0 < x < puzzleSize)
-	 * @param y the horizontal coordinate value (0 < y < puzzleSize)
+	 * @param y the vertical coordinate value (0 < y < puzzleSize)
 	 * @return the piece at the given position, or {@code null} if that position 
 	 * is empty
 	 * @throws IllegalArgumentException if the parameters are not within the 
@@ -124,13 +223,17 @@ public class Grid {
 	 */
 	public Piece getPieceAtPosition(int x, int y)
 	{
-		if(x < 0 || x >= size || y < 0 || y >= size)
-			throw new IllegalArgumentException();
-		
-		MutablePiece originalPiece = grid[y][x];
-		// Producing an immutable wrapper of the original piece to prevent 
-		// accidental modification from the outside.
-		return originalPiece != null ? new ImmutablePiece(originalPiece) : null; 
+		return getPieceAtPosition(Position.fromCoordinates(x, y));
+	}
+	
+	/**
+	 * Gets the current position of the grid's empty space.
+	 * 
+	 * @return The current position of the grid's empty space
+	 */
+	public Position getEmptySpacePosition()
+	{
+		return emptySpacePosition;
 	}
 
 	/**
@@ -143,16 +246,34 @@ public class Grid {
 		return grid.length;
 	}
 	
-	// TODO: Add methods to move pieces
-	
-	public void doMove(Move move)
+	/**
+	 * Moves the given piece to the given position, assuming that the piece 
+	 * is adjacent to it and that it corresponds an empty space.
+	 * 
+	 * @param piece The piece to be moved
+	 * @param destination The new position
+	 * @return {@code true} if the piece has been moved, {@code false} if the piece 
+	 * cannot be moved, that is, it is not adjacent to the empty space or if the 
+	 * specified position is occupied.
+	 */
+	public boolean doMove(Piece piece, Position destination)
 	{
-		MutablePiece targetPiece = grid[move.target.getY()][move.target.getX()];
+		if(!isPositionWithinBounds(destination) || !destination.equals(emptySpacePosition))
+			return false;
 		
-		// TODO: validate move
-		
-		targetPiece.move(move.delta.X, move.delta.Y);
-		grid[targetPiece.getY()][targetPiece.getX()] = targetPiece;
-		
+		return doMoveInternal(piece, destination);
+	}
+	
+	/**
+	 * Moves the given piece to the puzzle's empty space, assuming that the piece 
+	 * is adjacent to it.
+	 * 
+	 * @param piece The piece to be moved
+	 * @return {@code true} if the piece has been moved, {@code false} if the piece 
+	 * cannot be moved, that is, it is not adjacent to the empty space.
+	 */
+	public boolean doMove(Piece piece)
+	{
+		return doMoveInternal(piece, emptySpacePosition);
 	}
 }
