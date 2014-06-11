@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-   <declare-styleable name="PuzzleView">
+   <declare-styleable name="EmptyPuzzleView">
        <attr name="fontSize" format="integer" />
        <attr name="initialPuzzleSize" format="integer" />
        </declare-styleable>

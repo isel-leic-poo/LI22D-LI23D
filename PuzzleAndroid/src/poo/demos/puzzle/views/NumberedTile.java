@@ -1,7 +1,8 @@
-package poo.demos.puzzle.view.tiles;
+package poo.demos.puzzle.views;
 
-import poo.demos.puzzle.model.Piece;
-import poo.demos.puzzle.view.Moveable;
+import poo.demos.common.views.Moveable;
+import poo.demos.common.views.Tile;
+import poo.demos.common.views.TileView;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -11,12 +12,23 @@ import android.graphics.Paint.Style;
 /**
  * Class whose instances visually represent puzzle pieces.  
  */
-class PuzzleTile extends Tile implements Moveable
+class NumberedTile extends Tile implements Moveable
 {
 	/**
 	 * Used to specify the rounded corners radius.
 	 */
 	private static final int ARC = 14;
+	
+	/**
+	 * Used to specify the alpha value applied to the parent's background color.
+	 */
+	private static final int ALPHA = 220;
+	
+	/**
+	 * The brushes used to paint the tiles. These brushes are 
+	 * shared across all tile instances.
+	 */
+	private static Paint tileOutlineBrush, tileFillBrush;
 	
 	/**
 	 * The tile's face number
@@ -34,17 +46,10 @@ class PuzzleTile extends Tile implements Moveable
 	 */
 	private final Rect numberBounds;
 	
-	/**
-	 * The brushes used to paint the tile.
-	 */
-	private final Paint tileOutlineBrush, tileFillBrush;
-	
 	private void computeNumberBounds()
 	{
 		numberX = (int) (bounds.left + (bounds.width() - numberBounds.width()) / 2);
 		numberY = (int) (bounds.top + bounds.height() - (bounds.height() - numberBounds.height()) / 2);
-		// Adjust descent
-		numberY -= tileOutlineBrush.getFontMetricsInt().descent;
 	}
 	
 	/**
@@ -53,20 +58,21 @@ class PuzzleTile extends Tile implements Moveable
 	 * @param parent The tile's parent view
 	 * @param number The tile's face number
 	 * @param bounds The tile's initial bounds
-	 * @param piece The piece instance associated to the current tile
-	 * @throw IllegalArgumentException if any of the given arguments are {@code null}
 	 */
-	public PuzzleTile(TileView parent, int number, RectF bounds, Piece piece)
+	public NumberedTile(TileView parent, int number, RectF bounds)
 	{
-		super(parent, bounds, piece);
-		
-		if(piece == null || parent == null || bounds == null)
-			throw new IllegalArgumentException();
+		super(parent, bounds);
 		
 		this.number = Integer.toString(number);
 		numberBounds = new Rect();
-		tileOutlineBrush = parent.getTileOutlineBrush();
-		tileFillBrush = parent.getTileFillBrush();
+		
+		// Are the shared brushes initialized?
+		if(tileOutlineBrush == null)
+		{
+			tileOutlineBrush = parent.getOutlineBrush();
+			tileFillBrush = new Paint(parent.getBackgroundBrush());
+			tileFillBrush.setAlpha(ALPHA);
+		}
 		
 		tileOutlineBrush.getTextBounds(this.number, 0, this.number.length() , numberBounds);
 		computeNumberBounds();
@@ -78,28 +84,32 @@ class PuzzleTile extends Tile implements Moveable
 		canvas.drawRoundRect(bounds, ARC, ARC, tileFillBrush);
 		final Style savedStyle = tileOutlineBrush.getStyle();
 		tileOutlineBrush.setStyle(Style.STROKE);
-		canvas.drawRoundRect(bounds, ARC, ARC, parent.getTileOutlineBrush());
+		canvas.drawRoundRect(bounds, ARC, ARC, tileOutlineBrush);
 		tileOutlineBrush.setStyle(savedStyle);
-		canvas.drawText(number, numberX, numberY, parent.getTileOutlineBrush());
+		canvas.drawText(number, numberX, numberY, tileOutlineBrush);
 	}
 
 	@Override
 	public void moveBy(float dx, float dy) 
 	{
+		RectF affectedArea = new RectF(bounds);
 		this.bounds.offset(dx, dy);
+		affectedArea.union(bounds);
+		affectedArea.roundOut(dirty);
+		parent.invalidate(dirty);
 		computeNumberBounds();
 	}
 
 	@Override
 	public void moveTo(float newLeft, float newTop) 
 	{
-		this.bounds.offsetTo(newLeft, newTop);
+		setPosition(newLeft, newTop);
 		computeNumberBounds();
 	}
 
 	@Override
 	public RectF getCurrentBounds() 
 	{
-		return this.bounds;
+		return this.getBounds();
 	}
 }

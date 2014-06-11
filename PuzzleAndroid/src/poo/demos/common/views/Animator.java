@@ -1,4 +1,4 @@
-package poo.demos.puzzle.view;
+package poo.demos.common.views;
 
 import android.graphics.RectF;
 import android.os.Handler;
@@ -17,20 +17,18 @@ public class Animator {
 		/**
 		 * Signals that the animation has been completed.
 		 * 
-		 * @param subject The {@link poo.demos.puzzle.view.Moveable} instance
+		 * @param subject The {@link poo.demos.common.views.Moveable} instance
 		 * that was subject to animation
-		 * @param affectedArea The area affected by the animation.
 		 */
-		public void onCompleted(Moveable subject, RectF affectedArea);
+		public void onCompleted(Moveable subject);
 		
 		/**
 		 * Signals that an animation step has been performed.
 		 * 
-		 * @param subject The {@link poo.demos.puzzle.view.Moveable} instance
+		 * @param subject The {@link poo.demos.common.views.Moveable} instance
 		 * that was subject to animation
-		 * @param affectedArea The area affected by the animation.
 		 */
-		public void onStepPerformed(Moveable subject, RectF affectedArea);
+		public void onStepPerformed(Moveable subject);
 	}
 
 	/**
@@ -71,24 +69,20 @@ public class Animator {
 		
 		animationQueue.post(new Runnable() {
 			private int remainingSteps = stepCount;
-			// Copying the subject's initial bounds
-			private final RectF affectedArea = new RectF(subject.getCurrentBounds());
 			
 			public void run()
 			{
 				if(--remainingSteps == 0)
 				{
 					subject.moveTo(finalBounds.left, finalBounds.top);
-					affectedArea.union(subject.getCurrentBounds());
 					if(listener!= null)
-						listener.onCompleted(subject, affectedArea);
+						listener.onCompleted(subject);
 				}
 				else
 				{
 					subject.moveBy(stepDeltaX, stepDeltaY);
-					affectedArea.union(subject.getCurrentBounds());
 					if(listener!= null)
-						listener.onStepPerformed(subject, affectedArea);
+						listener.onStepPerformed(subject);
 					animationQueue.post(this);
 				}
 			}

@@ -36,6 +36,18 @@ public class MutablePiece extends Piece {
 	{
 		initialPosition = currentPosition = position;
 	}
+	
+	/**
+	 * Initiates an instance with the given initial and current positions
+	 * 
+	 * @param initial the instance's initial position
+	 * @param current the instance's current position
+	 */
+	public MutablePiece(Position initial, Position current)
+	{
+		initialPosition = initial;
+		currentPosition = current;
+	}
 
 	/**
 	 * Gets the piece's initial position.

@@ -1,4 +1,4 @@
-package poo.demos.puzzle.view;
+package poo.demos.puzzle.views;
 
 import poo.demos.puzzle.R;
 import android.content.Context;
@@ -16,7 +16,7 @@ import android.view.View;
 /**
  * Control that displays an empty puzzle. 
  */
-public class PuzzleView extends View {
+public class EmptyPuzzleView extends View {
 	
 	private static final int MINIMUM_TILE_COUNT = 1;
 	private static final int DEFAULT_TILE_COUNT = 4;
@@ -109,7 +109,7 @@ public class PuzzleView extends View {
 	 * 
 	 * @param context The current context
 	 */
-	public PuzzleView(Context context) 
+	public EmptyPuzzleView(Context context) 
 	{
 		this(context, null);
 	}
@@ -120,7 +120,7 @@ public class PuzzleView extends View {
 	 * @param context The current context
 	 * @param attrs The attribute set to be used in the configuration of the new instance 
 	 */
-	public PuzzleView(Context context, AttributeSet attrs) 
+	public EmptyPuzzleView(Context context, AttributeSet attrs) 
 	{
 		this(context, attrs, 0);
 	}
@@ -132,7 +132,7 @@ public class PuzzleView extends View {
 	 * @param attrs The attribute set to be used in the configuration of the new instance
 	 * @param defStyleAttr The default style identifier
 	 */
-	public PuzzleView(Context context, AttributeSet attrs, int defStyle) 
+	public EmptyPuzzleView(Context context, AttributeSet attrs, int defStyle) 
 	{
 		super(context, attrs, defStyle);
 		tileCount = Math.max(attrs.getAttributeIntValue(NAMESPACE, TILE_COUNT_ATTR, DEFAULT_TILE_COUNT), MINIMUM_TILE_COUNT);

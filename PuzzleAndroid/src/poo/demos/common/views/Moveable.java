@@ -1,4 +1,4 @@
-package poo.demos.puzzle.view;
+package poo.demos.common.views;
 
 import android.graphics.RectF;
 

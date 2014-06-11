@@ -1,68 +1,27 @@
 package poo.demos.puzzle.model;
 
-import java.util.LinkedList;
+import java.util.Iterator;
 
 /**
  * Class that stands as a facade to the puzzle model subsystem.
  */
-public class Puzzle {
-	
-	/**
-	 * Contract to be supported by listeners of {@link Grid} instance
-	 * state modifications.  
-	 */
-	public static interface OnModificationListener
-	{
-		/**
-		 * Callback method that signals that a piece has moved.
-		 * 
-		 * @param evt The object containing the event information
-		 */
-		public void onPieceMoved(PieceMovedEvent evt);
-	}
-	
-	/**
-	 * Holds the list of listeners.
-	 */
-	private final LinkedList<OnModificationListener> listeners;
-	
-	/**
-	 * Fires notifications of piece moved events.
-	 *  
-	 * @param evt the object containing the event information
-	 */
-	private void firePieceMovedEvent(PieceMovedEvent evt)
-	{
-		for(OnModificationListener listener : listeners)
-			listener.onPieceMoved(evt);
-	}
-	
-	/**
-	 * Registers the given listener to receive the corresponding events.
-	 * 
-	 * @param listener The listener instance
-	 */
-	public void registerOnModificationListener(OnModificationListener listener)
-	{
-		listeners.add(listener);
-	}
-	
-	/**
-	 * Unregisters the given listener. From that point on, the listener will no longer
-	 * receive {@link PieceMovedEvent} events.
-	 * 
-	 * @param listener The listener to remove from the list of registered listeners
-	 */
-	public void unregisterOnModificationListener(OnModificationListener listener)
-	{
-		listeners.remove(listener);
-	}
+public class Puzzle implements Iterable<Piece> {
 	
 	/**
 	 * Holds the puzzle's grid instance.
 	 */
 	private final Grid grid;
 
+	/**
+	 * Initiates a puzzle instance with the given grid.
+	 * 
+	 * @param grid The grid instance
+	 */
+	public Puzzle(Grid grid)
+	{
+		this.grid = grid;
+	}
+	
 	/**
 	 * Initiates a puzzle instance with the given dimension and eventually shuffled.
 	 * 
@@ -73,7 +32,6 @@ public class Puzzle {
 	public Puzzle(int side, boolean shuffled)
 	{
 		grid = shuffled ? Grid.createRandomPuzzle(side) : Grid.createPuzzle(side);
-		listeners = new LinkedList<Puzzle.OnModificationListener>();
 	}
 	
 	/**
@@ -92,7 +50,17 @@ public class Puzzle {
 	}
 	
 	/**
-	 * Gets the puzzle's size.
+	 * Gets the position of the puzzle's empty space.
+	 * 
+	 * @return The current position of the puzzle's empty space
+	 */
+	public Position getEmptySpacePosition()
+	{
+		return grid.getEmptySpacePosition();
+	}
+	
+	/**
+	 * Gets the puzzle's size, that is, the number of pieces in each side.
 	 * 
 	 * @return the puzzle's size
 	 */
@@ -111,12 +79,18 @@ public class Puzzle {
 	 */
 	public boolean doMove(Piece piece)
 	{
-		Position from = piece.getPosition();
-		boolean moved = grid.doMove(piece);
-
-		if(moved)
-			firePieceMovedEvent(new PieceMovedEvent(piece, from, piece.getPosition()));
-		
-		return moved;
-	}	
+		return grid.doMove(piece);
+	}
+	
+	/**
+	 * Gets an iterator for the puzzle's pieces. The empty space is not included
+	 * in the iterated sequence.
+	 * 
+	 * @return the iterator for the puzzle's pieces.
+	 */
+	@Override
+	public Iterator<Piece> iterator()
+	{
+		return grid.iterator(); 
+	}
 }

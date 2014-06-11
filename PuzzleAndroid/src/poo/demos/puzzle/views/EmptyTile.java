@@ -1,5 +1,7 @@
-package poo.demos.puzzle.view.tiles;
+package poo.demos.puzzle.views;
 
+import poo.demos.common.views.Tile;
+import poo.demos.common.views.TileView;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 
@@ -9,16 +11,14 @@ import android.graphics.RectF;
 class EmptyTile extends Tile
 {
 	/**
-	 * 
-	 * @param parent
-	 * @param bounds
+	 * Creates an instance with the given arguments.
+	 *  
+	 * @param parent The tile's parent control
+	 * @param bounds The tile's initial bounds
 	 */
 	public EmptyTile(TileView parent, RectF bounds) 
 	{
 		super(parent, bounds);
-		
-		if(parent == null || bounds == null)
-			throw new IllegalArgumentException();
 	}
 
 	@Override

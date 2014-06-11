@@ -1,7 +1,11 @@
 package poo.demos.puzzle.model.tests;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.junit.matchers.JUnitMatchers.*;
 import static org.junit.Assert.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -147,5 +151,25 @@ public class GridTests {
 		assertThat(puzzle.getEmptySpacePosition(), is(equalTo(initialEmptyPosition)));
 		assertThat(pieceToMove.getPosition(), is(equalTo(initialPosition)));
 		assertThat(puzzle.getPieceAtPosition(pieceToMove.getPosition()), is(equalTo(pieceToMove)));
+	}
+	
+	@Test
+	public void iteratePuzzle_withShuffledPuzzle_allPiecesAreTraversed()
+	{
+		Set<Position> occupiedPositions = new HashSet<Position>();
+		for(Piece piece : puzzle)
+			occupiedPositions.add(piece.getPosition());
+		
+		assertThat(occupiedPositions.size(), is(equalTo(puzzle.getSize() * puzzle.getSize() - 1)));
+	}
+	
+	@Test
+	public void getEmptyPosition_withShuffledPuzzle_returnsCorrectPosition()
+	{
+		Set<Position> occupiedPositions = new HashSet<Position>();
+		for(Piece piece : puzzle)
+			occupiedPositions.add(piece.getPosition());
+
+		assertThat(occupiedPositions, not(hasItem(puzzle.getEmptySpacePosition())));
 	}
 }

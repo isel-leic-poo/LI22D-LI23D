@@ -1,16 +1,20 @@
 package poo.demos.puzzle.model;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 /**
  * Class whose instances represent puzzle grids.
  * For the sake of simplification, grids always have a squared shape. 
  */
-public class Grid {
+public class Grid implements Iterable<Piece> {
 	
 	/**
 	 * Wrapper class used to increase the robustness of the solution.
 	 * MutablePiece instances which are used internally are never directly accessed
-	 * from the outside. Instead, the Grid implementation always produces
-	 * instances of ImmutablePiece, thus preventing direct access to the mutable state.
+	 * from the outside. Instead, the {@link Grid} implementation always produces
+	 * instances of {@link ImmutablePiece}, thus preventing direct access to the mutable state.
 	 * 
 	 * The solution is based in the Decorator Design Pattern, thereby not requiring 
 	 * defensive copying. 
@@ -172,7 +176,7 @@ public class Grid {
 	 * 
 	 * @param size the size of the puzzle's side. The size of the puzzle must be, at least,
 	 * of two elements per side. 
-	 * @return the instance
+	 * @return the new instance
 	 * @throws IllegalArgumentException if size is less or equal than {@code 1} 
 	 */
 	public static Grid createPuzzle(int size)
@@ -185,6 +189,33 @@ public class Grid {
 		
 		for(int idx = 0; idx < pieces.length; ++idx)
 			instance.grid[idx / size][idx % size] = pieces[idx];
+		
+		return instance;
+	}
+	
+	/**
+	 * Factory method that produces a puzzle initialized with the given pieces.
+	 * 
+	 * @param pieces the pieces to add to the puzzle
+	 * @param emptyPosition the position of the puzzle that is empty
+	 * @return the new instance
+	 * @throws IllegalArgumentException if either argument is {@code null} 
+	 */
+	public static Grid createPuzzle(List<Piece> pieces, Position emptyPosition)
+	{
+		if(pieces == null || emptyPosition == null)
+			throw new IllegalArgumentException();
+
+		int size = (int) Math.sqrt(pieces.size() + 1);
+		
+		Grid instance = new Grid(size);
+		for(Piece piece : pieces)
+		{
+			Position pos = piece.getPosition();
+			instance.grid[pos.Y][pos.X] = new MutablePiece(pos);
+		}
+		
+		instance.emptySpacePosition = emptyPosition;
 		
 		return instance;
 	}
@@ -275,5 +306,44 @@ public class Grid {
 	public boolean doMove(Piece piece)
 	{
 		return doMoveInternal(piece, emptySpacePosition);
+	}
+
+	/**
+	 * Gets an iterator for the grid's pieces. The empty space is not included
+	 * in the iterated sequence.
+	 * 
+	 * @return the iterator for the grid's pieces.
+	 */
+	@Override
+	public Iterator<Piece> iterator() 
+	{
+		return new Iterator<Piece>() {
+
+			private final int emptyIndex = emptySpacePosition.X + size * emptySpacePosition.Y;
+			private final int SIZE = size * size;
+			private int current = emptyIndex == 0 ? 1 : 0;
+			
+			@Override
+			public boolean hasNext() 
+			{
+				return current != SIZE;
+			}
+
+			@Override
+			public Piece next() 
+			{
+				if(!hasNext())
+					throw new NoSuchElementException();
+				
+				int idx = current++;
+				if(current == emptyIndex)
+					current += 1;
+				
+				return grid[idx / size][idx % size];
+			}
+
+			@Override
+			public void remove() { throw new UnsupportedOperationException(); }
+		};
 	}
 }

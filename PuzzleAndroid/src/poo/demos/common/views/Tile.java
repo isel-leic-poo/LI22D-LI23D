@@ -1,7 +1,7 @@
-package poo.demos.puzzle.view.tiles;
+package poo.demos.common.views;
 
-import poo.demos.puzzle.model.Piece;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.RectF;
 
 /**
@@ -14,7 +14,7 @@ import android.graphics.RectF;
  * Because the Tile hierarchy is not directly based on Android's view system,
  * repaint behavior is left to the parent View.
  */
-abstract class Tile {
+public abstract class Tile {
 	
 	/**
 	 * The tile's parent.
@@ -27,9 +27,9 @@ abstract class Tile {
 	protected final RectF bounds;
 	
 	/**
-	 * The associated piece instance.
+	 * Cached instance to used when some area of the parent control is invalidated.
 	 */
-	protected final Piece piece;
+	protected final Rect dirty;
 	
 	/**
 	 * Initiates the tile placing it at the given bounds and associating it to a 
@@ -37,27 +37,15 @@ abstract class Tile {
 	 * 
 	 * @param tileView The TileView instance that contains the current tile 
 	 * @param bounds The bounds where the tile is placed
-	 * @param piece The piece instance associated to the current tile
-	 */
-	protected Tile(TileView parent, RectF bounds, Piece piece)
-	{
-		this.parent = parent;
-		this.bounds = bounds;
-		this.piece = piece;
-	}
-	
-	/**
-	 * Initiates the tile placing it at the given bounds without associating it to a 
-	 * specific piece instance.
-	 * 
-	 * @param tileView The TileView instance that contains the current tile 
-	 * @param bounds The bounds where the tile is placed
+	 * @throw IllegalArgumentException if any of the given arguments are {@code null}
 	 */
 	protected Tile(TileView parent, RectF bounds)
 	{
-		this(parent, bounds, null);
+		this.parent = parent;
+		this.bounds = bounds;
+		this.dirty = new Rect();
 	}
-
+	
 	/**
 	 * Gets the tile's bounds. The behavior that results from the direct modification 
 	 * of the returned instance is unspecified.  
@@ -71,14 +59,18 @@ abstract class Tile {
 	
 	/**
 	 * Sets the instance's position, that is, its bounding rectangle is repositioned to
-	 * the given coordinates.
+	 * the given coordinates. The call promotes the parent view to be redrawn.
 	 * 
 	 * @param newLeft The horizontal coordinate
 	 * @param newTop The vertical coordinate
 	 */
 	public final void setPosition(float newLeft, float newTop)
 	{
+		RectF affectedArea = new RectF(bounds);
 		bounds.offsetTo(newLeft, newTop);
+		affectedArea.union(bounds);
+		affectedArea.roundOut(dirty);
+		parent.invalidate(dirty);
 	}
 	
 	/**
