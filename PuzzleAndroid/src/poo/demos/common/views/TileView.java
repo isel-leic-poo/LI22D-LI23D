@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -22,16 +23,30 @@ public class TileView extends View {
 	public static interface OnTileActionListener {
 		
 		/**
-		 * Callback method that notifies 
-		 * @param evt
+		 * Callback method that notifies that a given tile has been tapped
+		 *  
+		 * @param evt The object containing the event information
 		 */
-		public void onTileTouch(TileActionEvent evt);
+		public void onTileTap(TileActionEvent evt);
+		
+		/**
+		 * Callback method that notifies that a given tile has been swiped upon
+		 *  
+		 * @param evt The object containing the event information
+		 */
+		public void onTileSwipe(TileActionEvent evt);
 	}
 		
 	/**
 	 * Holds the reference to the registered tile action listener.
 	 */
 	private OnTileActionListener listener;
+	
+	/**
+	 * Holds the reference to the gesture detector used to transform gesture events
+	 * in tile action events.
+	 */
+	private final GestureDetector gestureDetector;
 	
 	/**
 	 * Registers the given listener has a receiver of tile action events.
@@ -48,20 +63,13 @@ public class TileView extends View {
 			this.setOnTouchListener(null);
 			return;
 		}
-	
+		
 		// Register the listener that will perform event transformation
 		this.setOnTouchListener(new View.OnTouchListener() {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) 
 			{
-				if(event.getAction() == MotionEvent.ACTION_UP)
-				{
-					final int column = (int) (event.getX() / tileSize);
-					final int row = (int) (event.getY() / tileSize);
-					fireOnTileTouchEvent(new TileActionEvent(tiles[row][column], column, row));
-				}
-				
-				return true;
+				return gestureDetector.onTouchEvent(event);
 			}
 		});
 	}
@@ -71,10 +79,21 @@ public class TileView extends View {
 	 *  
 	 * @param evt the event instance to be dispatched
 	 */
-	private void fireOnTileTouchEvent(TileActionEvent evt)
+	private void fireOnTileTapEvent(TileActionEvent evt)
 	{
 		if(listener != null)
-			listener.onTileTouch(evt);
+			listener.onTileTap(evt);
+	}
+	
+	/**
+	 * Dispatches the given event to the registered listener, if there is one.
+	 *  
+	 * @param evt the event instance to be dispatched
+	 */
+	private void fireOnTileSwipeEvent(TileActionEvent event)
+	{
+		if(listener != null)
+			listener.onTileSwipe(event);
 	}
 	
 	private static final int DEFAULT_FONT_SIZE = 50;
@@ -105,6 +124,13 @@ public class TileView extends View {
 	private Tile[][] tiles;
 	
 	/**
+	 * Caches the bounds associated to each grid position of the view.
+	 * The goal is to prevent systematic instantiation of those bounds, therefore
+	 * reusing these immutable instances. 
+	 */
+	private RectF[][] tilesBounds;
+	
+	/**
 	 * Cached instance to used when some area of the control is invalidated.
 	 */
 	private Rect dirty;
@@ -126,6 +152,7 @@ public class TileView extends View {
 			return;
 		
 		tiles = new Tile[puzzleSideTileCount][puzzleSideTileCount];
+		tilesBounds = new RectF[puzzleSideTileCount][puzzleSideTileCount];
 		
 		// Create puzzle tiles
 		for(int row = 0; row < puzzleSideTileCount; ++row)
@@ -134,9 +161,8 @@ public class TileView extends View {
 			{
 				int currentLeft = column * tileSize;
 				int currentTop = row * tileSize;
-				tiles[row][column] = tileProvider.createTile(row, column, this, 
-						new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize)
-				);
+				tilesBounds[row][column] = new RectF(currentLeft, currentTop, currentLeft + tileSize, currentTop + tileSize); 
+				tiles[row][column] = tileProvider.createTile(row, column, this, new RectF(tilesBounds[row][column]));
 			}
 		}
 	}
@@ -158,7 +184,7 @@ public class TileView extends View {
 		backgroundBrush.setStyle(Paint.Style.FILL);
 		backgroundBrush.setAlpha(100);
 
-		setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+		setLayerType(View.LAYER_TYPE_HARDWARE, null);
 	}
 
 	/**
@@ -218,6 +244,49 @@ public class TileView extends View {
 		puzzleSideTileCount = attrs.getAttributeIntValue(NAMESPACE, INITIAL_PUZZLE_SIZE_ATTR, DEFAULT_PUZZLE_SIZE);
 		tileProvider = null;
 		dirty = new Rect();
+		
+		gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+
+			private int getTileRow(MotionEvent event) { return (int) (event.getY() / tileSize); }
+			
+			private int getTileColumn(MotionEvent event) { return (int) (event.getX() / tileSize); }
+			
+			@Override
+			public boolean onDown(MotionEvent event) { return true; }
+
+			@Override
+			public boolean onSingleTapConfirmed(MotionEvent event) 
+			{
+				final int column = getTileColumn(event);
+				final int row = getTileRow(event);
+				fireOnTileTapEvent(new TileActionEvent(tiles[row][column], column, row));
+				return true;
+			}
+
+			@Override
+			public void onShowPress(MotionEvent e) 
+			{
+			}
+
+			@Override
+			public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) 
+			{
+				final double FLING_THRESHOLD = 10.0;
+				final int VERTICAL = 0, HORIZONTAL = 1;
+				if(Math.abs(velocityX) > FLING_THRESHOLD || Math.abs(velocityX) > FLING_THRESHOLD)
+				{
+					// It's a fling. Let's detect its direction
+					int orientation = Math.abs(velocityY) < Math.abs(velocityX) ? HORIZONTAL : VERTICAL;
+					int sign = (int) (orientation == HORIZONTAL ? Math.signum(velocityX) : Math.signum(velocityY));
+					sign = sign < 0 ? 0 : 1;
+					
+					final int column = getTileColumn(e1);
+					final int row = getTileRow(e1);
+					fireOnTileSwipeEvent(new TileActionEvent(tiles[row][column], column, row, TileActionEvent.Direction.values()[orientation * 2 + sign]));
+				}
+				return true;
+			}
+		});
 	}
 
 	/**
@@ -251,8 +320,8 @@ public class TileView extends View {
 	 * Gets the {@link Tile} instance at the given position in the grid. Grid 
 	 * coordinates are expressed in the interval {@code [0..getNumberOfTilesPerSide()[}. 
 	 * 
-	 * @param column The grid's column
-	 * @param row The grid's row
+	 * @param column the grid's column
+	 * @param row the grid's row
 	 * @return The {@link Tile} instance at the given position in the grid
 	 * @throws IllegalArgumentException if either argument is not within the grid's bounds
 	 */
@@ -266,11 +335,13 @@ public class TileView extends View {
 	
 	/**
 	 * Sets the {@link Tile} instance at the given position in the grid. Grid 
-	 * coordinates are expressed in the interval {@code [0..getNumberOfTilesPerSide()[}. 
+	 * coordinates are expressed in the interval {@code [0..getNumberOfTilesPerSide()[}.
+	 * The tile's bounds are expected to be correct, that is, coherent with the bounds that 
+	 * a tile at that position should have.  
 	 * 
-	 * @param tile The {@link Tile} instance to place at the given position
-	 * @param column The grid's column
-	 * @param row The grid's row
+	 * @param tile the {@link Tile} instance to place at the given position
+	 * @param column the grid's column
+	 * @param row the grid's row
 	 * @throws IllegalArgumentException if either argument is not within the grid's bounds
 	 */
 	public void setTileAt(Tile tile, int column, int row) 
@@ -282,6 +353,24 @@ public class TileView extends View {
 		// Perform a partial redraw
 		tile.getBounds().roundOut(dirty);
 		invalidate(dirty);
+	}
+	
+	/**
+	 * Gets the {@link RectF} instance that represents the bounds that the {@link Tile} instance 
+	 * placed at the given column and row should have.
+	 * The returned instance must not be modified. Non compliance can lead to unpredictable behavior.
+	 *     
+	 * @param column the grid's column
+	 * @param row the grid's row
+	 * @throws IllegalArgumentException if either argument is not within the grid's bounds
+	 * @return the corresponding bounds expressed as a {link RectF} instance
+	 */
+	public RectF getBoundsForTileAt(int column, int row)
+	{
+		if(column < 0 || column >= puzzleSideTileCount || row < 0 || row >= puzzleSideTileCount)
+			throw new IllegalArgumentException();
+
+		return tilesBounds[row][column];
 	}
 	
 	@Override

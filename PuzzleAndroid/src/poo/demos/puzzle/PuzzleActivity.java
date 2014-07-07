@@ -30,7 +30,7 @@ public class PuzzleActivity extends Activity {
 		TileView tileView = (TileView) findViewById(R.id.puzzleView);
 		
 		puzzleController = (savedInstanceState != null) ? 
-				PuzzleController.createController(tileView, savedInstanceState) :
-				PuzzleController.createController(tileView, true);
+				PuzzleController.createController(tileView, savedInstanceState, this) :
+				PuzzleController.createController(tileView, true, this);
 	}
 }

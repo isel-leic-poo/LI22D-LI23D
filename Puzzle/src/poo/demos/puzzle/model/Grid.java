@@ -120,7 +120,7 @@ public class Grid implements Iterable<Piece> {
 	private boolean doMoveInternal(Piece piece, Position destination)
 	{
 		final int TOTAL_DELTA_TO_ADJACENT = 1; 
-		int totalDelta = Math.abs((piece.getPosition().X - destination.X) + (piece.getPosition().Y - destination.Y));
+		int totalDelta = Math.abs((piece.getPosition().X - destination.X)) + Math.abs(piece.getPosition().Y - destination.Y);
 		
 		// Not moving to the adjacent position
 		if(totalDelta != TOTAL_DELTA_TO_ADJACENT)
@@ -279,7 +279,7 @@ public class Grid implements Iterable<Piece> {
 	
 	/**
 	 * Moves the given piece to the given position, assuming that the piece 
-	 * is adjacent to it and that it corresponds an empty space.
+	 * is adjacent to it and that it corresponds to an empty space.
 	 * 
 	 * @param piece The piece to be moved
 	 * @param destination The new position
